@@ -1,13 +1,16 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase as generatedClient } from "@/integrations/supabase/client";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const env = import.meta.env as Record<string, string | undefined>;
+
+const supabaseUrl = env["VITE_SUPABASE_URL"] || "";
 const supabaseKey =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  "";
+  env["VITE_SUPABASE_PUBLISHABLE_KEY"] || env["VITE_SUPABASE_ANON_KEY"] || "";
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && supabaseKey && supabaseUrl.startsWith("http") && supabaseKey.length > 10,
 );
 
-export const supabase = isSupabaseConfigured ? generatedClient : null;
+export const supabase: SupabaseClient | null = isSupabaseConfigured
+  ? (generatedClient as unknown as SupabaseClient)
+  : null;
