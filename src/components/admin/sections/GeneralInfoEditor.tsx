@@ -12,13 +12,14 @@ const schema = z.object({
   heroTitle: z.string().min(1, "Obrigatório"),
   heroSubtitle: z.string().min(1, "Obrigatório"),
   address: z.string().min(1, "Obrigatório"),
-  addressComplement: z.string().optional().default(""),
+  addressComplement: z.string().optional(),
   hoursText: z.string().min(1, "Obrigatório"),
-  phoneText: z.string().optional().default(""),
+  phoneText: z.string().optional(),
   booksyUrl: z.string().min(1, "Obrigatório"),
   whatsappUrl: z.string().min(1, "Obrigatório"),
-  googleMapsUrl: z.string().optional().default(""),
-  googleMapsEmbedUrl: z.string().optional().default(""),
+  instagramUrl: z.string().optional(),
+  googleMapsUrl: z.string().optional(),
+  googleMapsEmbedUrl: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -41,6 +42,7 @@ export function GeneralInfoEditor() {
       phoneText: siteConfig.phoneText || "",
       booksyUrl: siteConfig.booksyUrl,
       whatsappUrl: siteConfig.whatsappUrl,
+      instagramUrl: siteConfig.instagramUrl || "",
       googleMapsUrl: siteConfig.googleMapsUrl || "",
       googleMapsEmbedUrl: siteConfig.googleMapsEmbedUrl || "",
     },
@@ -58,6 +60,7 @@ export function GeneralInfoEditor() {
       phoneText: siteConfig.phoneText || "",
       booksyUrl: siteConfig.booksyUrl,
       whatsappUrl: siteConfig.whatsappUrl,
+      instagramUrl: siteConfig.instagramUrl || "",
       googleMapsUrl: siteConfig.googleMapsUrl || "",
       googleMapsEmbedUrl: siteConfig.googleMapsEmbedUrl || "",
     });
@@ -77,6 +80,7 @@ export function GeneralInfoEditor() {
         phoneText: data.phoneText || "",
         booksyUrl: data.booksyUrl,
         whatsappUrl: data.whatsappUrl,
+        instagramUrl: data.instagramUrl || "",
         googleMapsUrl: data.googleMapsUrl || "",
         googleMapsEmbedUrl: data.googleMapsEmbedUrl || "",
       };
@@ -247,6 +251,14 @@ export function GeneralInfoEditor() {
             </label>
             <input {...register("booksyUrl")} className={inputClass} placeholder="https://booksy.com/widget-2024/..." />
             {errors.booksyUrl && <p className="text-xs text-red-400 mt-1">{errors.booksyUrl.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+              Instagram (URL completa)
+            </label>
+            <input {...register("instagramUrl")} className={inputClass} placeholder="https://www.instagram.com/Ellite_barberss/" />
+            <p className="text-[11px] text-gray-500 mt-1">Se vazio, o ícone não aparecerá no rodapé.</p>
           </div>
         </div>
 

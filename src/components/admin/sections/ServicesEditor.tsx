@@ -71,6 +71,12 @@ function SortableServiceRow({
         <GripVertical className="w-4 h-4" />
       </button>
 
+      {service.imageUrl && (
+        <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#C9A84C]/30 shrink-0">
+          <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+        </div>
+      )}
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-serif font-bold text-white text-sm">{service.name}</span>
@@ -121,23 +127,76 @@ function ServiceForm({ initial, onSave, onCancel }: ServiceFormProps) {
   const [description, setDescription] = useState(initial?.description ?? "");
   const [category, setCategory] = useState<"cabelo" | "outros">(initial?.category ?? "outros");
   const [popular, setPopular] = useState(initial?.popular ?? false);
+  const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const { uploadServiceImage } = await import("../../../lib/supabase-db");
+      const id = initial?.id ?? `new-${Date.now()}`;
+      const url = await uploadServiceImage(file, id);
+      setImageUrl(url);
+    } catch(err) {
+      console.error("Erro no upload", err);
+      alert("Erro ao fazer upload da imagem. Verifique se o Supabase está configurado corretamente.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!name || !price || !time) return;
     setSaving(true);
-    await onSave({ name, price, time, description, category, popular });
+    await onSave({ name, price, time, description, category, popular, imageUrl });
     setSaving(false);
   };
 
   const inputClass = "w-full px-3 py-2.5 rounded-lg bg-[#0a0a0a] border border-white/10 text-white text-sm focus:outline-none focus:border-[#C9A84C]/50 transition-all";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#141414] border border-[#C9A84C]/30 rounded-2xl p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-md bg-[#141414] border border-[#C9A84C]/30 rounded-2xl p-6 shadow-2xl my-auto">
         <h3 className="font-serif text-lg font-bold text-white mb-5">
           {initial?.name ? "Editar Serviço" : "Novo Serviço"}
         </h3>
+        
+        {/* Imagem do Serviço */}
+        <div className="mb-5">
+          <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">
+            Foto do Serviço (Opcional)
+          </label>
+          <div className="flex items-center gap-4">
+            {imageUrl ? (
+              <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#C9A84C]/40">
+                <img src={imageUrl} alt="Serviço" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  className="absolute top-1 right-1 p-1 rounded-full bg-red-500/80 text-white hover:bg-red-500 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-xl border border-dashed border-white/20 bg-white/5 flex items-center justify-center text-gray-500">
+                {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : "1:1"}
+              </div>
+            )}
+            <div className="flex-1">
+              <label className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-300 cursor-pointer hover:bg-white/10 transition-all w-full text-center">
+                {uploadingImage ? "Enviando..." : (imageUrl ? "Trocar Foto" : "Escolher Foto")}
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploadingImage} />
+              </label>
+              <p className="text-[10px] text-gray-500 mt-1.5">JPG/PNG. 1:1 recomendado. Aparecerá no card e modal.</p>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <input placeholder="Nome do serviço" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           <input placeholder="Preço (ex: R$ 50,00)" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />

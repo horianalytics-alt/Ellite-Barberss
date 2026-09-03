@@ -4,7 +4,7 @@ import { useSiteData } from "../context/SiteDataContext";
 
 export function Footer() {
   const { siteConfig } = useSiteData();
-  const { booksyUrl, whatsappUrl, address, hoursText } = siteConfig;
+  const { booksyUrl, whatsappUrl, address, hoursText, instagramUrl } = siteConfig;
   return (
     <footer className="bg-[#070707] text-gray-400 pt-16 pb-12 px-4 sm:px-6 lg:px-8 border-t border-[#C9A84C]/20">
       <div className="max-w-7xl mx-auto">
@@ -24,7 +24,7 @@ export function Footer() {
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-[#A0A0A0] leading-relaxed opacity-100">
               Barbearia de alto padrão com serviços de excelência em corte, barba e tratamentos masculinos. Tradição e estilo no mesmo lugar.
             </p>
             <div className="flex items-center gap-3 pt-2">
@@ -33,19 +33,21 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="w-9 h-9 rounded-full bg-[#141414] border border-white/10 flex items-center justify-center text-gray-300 hover:text-[#C9A84C] hover:border-[#C9A84C] transition-all"
+                className="w-10 h-10 rounded-full bg-[#141414] border border-white/10 flex items-center justify-center text-gray-300 hover:text-[#C9A84C] hover:border-[#C9A84C] transition-all"
               >
                 <Phone className="w-4 h-4" />
               </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="w-9 h-9 rounded-full bg-[#141414] border border-white/10 flex items-center justify-center text-gray-300 hover:text-[#C9A84C] hover:border-[#C9A84C] transition-all"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
+              {instagramUrl && (
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-10 h-10 rounded-full bg-[#141414] border border-white/10 flex items-center justify-center text-gray-300 hover:text-[#C9A84C] hover:border-[#C9A84C] transition-all"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+              )}
             </div>
           </div>
 

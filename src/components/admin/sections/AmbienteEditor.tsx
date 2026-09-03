@@ -146,7 +146,8 @@ export function AmbienteEditor() {
   const handleMove = async (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= images.length) return;
     const next = [...images];
-    const [item] = next.splice(fromIndex, 1);
+    const item = next.splice(fromIndex, 1)[0];
+    if (item === undefined) return;
     next.splice(toIndex, 0, item);
     setImages(next);
     await persistImages(next);

@@ -12,6 +12,7 @@ export interface SiteConfig {
   phoneText: string;
   booksyUrl: string;
   whatsappUrl: string;
+  instagramUrl: string;
   googleMapsUrl: string;
   googleMapsEmbedUrl: string;
   logoUrl: string;
@@ -29,6 +30,7 @@ export interface ServiceItem {
   popular: boolean;
   category: "cabelo" | "outros";
   order: number;
+  imageUrl?: string;
 }
 
 export interface PackageItem {
@@ -50,7 +52,7 @@ export interface GalleryItem {
   order: number;
 }
 
-// ─── Default Fallback Data ───────────────────────────────────────────────────
+// 💎💎💎 Default Fallback Data 💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎💎
 
 const BOOKSY_URL =
   "https://booksy.com/widget-2024/index.html?realm=instagram&country=br&language=pt&fingerprint=cc34af3d-7dd2-4f4a-a3be-e3670f4eff74&channel=156ce701-bd15-4539-a838-e48841087851&id=395022&ba_s=Undefined";
@@ -68,6 +70,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   phoneText: "(11) 93470-6817",
   booksyUrl: BOOKSY_URL,
   whatsappUrl: WHATSAPP_URL,
+  instagramUrl: "https://www.instagram.com/Ellite_barberss/",
   googleMapsUrl: "https://maps.google.com/?q=Rua+Prudente+de+Morais,+10+-+Vila+Flora+Regina,+Arujá+-+SP",
   googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3660.854619566938!2d-46.323565924765955!3d-23.39868777891361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce8751515ef861%3A0x738cb23e4e979a0!2sR.%20Prudente%20de%20Morais%2C%2010%20-%20Vila%20Flora%20Regina%2C%20Aruj%C3%A1%20-%20SP%2C%2007400-000!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr",
   logoUrl: "",
@@ -157,6 +160,7 @@ function mapDbConfigToFrontend(row: any): SiteConfig {
     phoneText: row.phone_text ?? DEFAULT_CONFIG.phoneText,
     booksyUrl: row.booksy_url ?? DEFAULT_CONFIG.booksyUrl,
     whatsappUrl: row.whatsapp_url ?? DEFAULT_CONFIG.whatsappUrl,
+    instagramUrl: row.instagram_url ?? DEFAULT_CONFIG.instagramUrl,
     googleMapsUrl: row.google_maps_url ?? DEFAULT_CONFIG.googleMapsUrl,
     googleMapsEmbedUrl: row.google_maps_embed_url ?? DEFAULT_CONFIG.googleMapsEmbedUrl,
     logoUrl: row.logo_url ?? DEFAULT_CONFIG.logoUrl,
@@ -177,6 +181,7 @@ function mapFrontendConfigToDb(config: Partial<SiteConfig>): any {
   if (config.phoneText !== undefined) result.phone_text = config.phoneText;
   if (config.booksyUrl !== undefined) result.booksy_url = config.booksyUrl;
   if (config.whatsappUrl !== undefined) result.whatsapp_url = config.whatsappUrl;
+  if (config.instagramUrl !== undefined) result.instagram_url = config.instagramUrl;
   if (config.googleMapsUrl !== undefined) result.google_maps_url = config.googleMapsUrl;
   if (config.googleMapsEmbedUrl !== undefined) result.google_maps_embed_url = config.googleMapsEmbedUrl;
   if (config.logoUrl !== undefined) result.logo_url = config.logoUrl;
@@ -197,6 +202,7 @@ function mapDbServiceToFrontend(row: any): ServiceItem {
     popular: Boolean(row.popular),
     category: row.category === "cabelo" ? "cabelo" : "outros",
     order: row.display_order ?? 0,
+    imageUrl: row.image_url,
   };
 }
 
@@ -249,17 +255,17 @@ export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void>
 
   // ── Phase 1: Save original columns (always exist in the DB) ──────────────────
   // These were part of the original schema and are guaranteed to exist.
-  const basePayload: Record<string, unknown> = { id: "main", updated_at: new Date().toISOString() };
-  if (config.barbershopName !== undefined) basePayload.barbershop_name = config.barbershopName;
-  if (config.heroTitle     !== undefined) basePayload.hero_title      = config.heroTitle;
-  if (config.heroSubtitle  !== undefined) basePayload.hero_subtitle   = config.heroSubtitle;
-  if (config.address       !== undefined) basePayload.address         = config.address;
-  if (config.hoursText     !== undefined) basePayload.hours_text      = config.hoursText;
-  if (config.booksyUrl     !== undefined) basePayload.booksy_url      = config.booksyUrl;
-  if (config.whatsappUrl   !== undefined) basePayload.whatsapp_url    = config.whatsappUrl;
-  if (config.logoUrl       !== undefined) basePayload.logo_url        = config.logoUrl;
-  if (config.accentColor   !== undefined) basePayload.accent_color    = config.accentColor;
-  if (config.backgroundColor !== undefined) basePayload.background_color = config.backgroundColor;
+  const basePayload: any = { id: "main", updated_at: new Date().toISOString() };
+  if (config.barbershopName !== undefined) basePayload["barbershop_name"] = config.barbershopName;
+  if (config.heroTitle     !== undefined) basePayload["hero_title"]      = config.heroTitle;
+  if (config.heroSubtitle  !== undefined) basePayload["hero_subtitle"]   = config.heroSubtitle;
+  if (config.address       !== undefined) basePayload["address"]         = config.address;
+  if (config.hoursText     !== undefined) basePayload["hours_text"]      = config.hoursText;
+  if (config.booksyUrl     !== undefined) basePayload["booksy_url"]      = config.booksyUrl;
+  if (config.whatsappUrl   !== undefined) basePayload["whatsapp_url"]    = config.whatsappUrl;
+  if (config.logoUrl       !== undefined) basePayload["logo_url"]        = config.logoUrl;
+  if (config.accentColor   !== undefined) basePayload["accent_color"]    = config.accentColor;
+  if (config.backgroundColor !== undefined) basePayload["background_color"] = config.backgroundColor;
 
   const hasBaseFields = Object.keys(basePayload).length > 2; // more than just id + updated_at
   if (hasBaseFields) {
@@ -280,6 +286,7 @@ export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void>
   if (config.googleMapsUrl      !== undefined) newColumnUpdates.push({ column: "google_maps_url",      value: config.googleMapsUrl });
   if (config.googleMapsEmbedUrl !== undefined) newColumnUpdates.push({ column: "google_maps_embed_url", value: config.googleMapsEmbedUrl });
   if (config.aboutImages        !== undefined) newColumnUpdates.push({ column: "about_images",         value: config.aboutImages });
+  if (config.instagramUrl       !== undefined) newColumnUpdates.push({ column: "instagram_url",        value: config.instagramUrl });
 
   for (const { column, value } of newColumnUpdates) {
     try {
@@ -333,7 +340,7 @@ export function subscribeSiteConfig(callback: (config: SiteConfig) => void): () 
 export async function saveService(service: Omit<ServiceItem, "id">): Promise<string> {
   if (!supabase) throw new Error("Supabase não configurado");
   const id = `svc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-  const payload = {
+  const payload: any = {
     id,
     name: service.name,
     price: service.price,
@@ -345,6 +352,14 @@ export async function saveService(service: Omit<ServiceItem, "id">): Promise<str
   };
   const { error } = await supabase.from("services").insert(payload);
   if (error) throw error;
+  
+  if (service.imageUrl !== undefined) {
+    try {
+      await supabase.from("services").update({ image_url: service.imageUrl }).eq("id", id);
+    } catch (e) {
+      console.warn("Failed to insert image_url", e);
+    }
+  }
   return id;
 }
 
@@ -359,8 +374,18 @@ export async function updateService(id: string, data: Partial<ServiceItem>): Pro
   if (data.category !== undefined) payload.category = data.category;
   if (data.order !== undefined) payload.display_order = data.order;
 
-  const { error } = await supabase.from("services").update(payload).eq("id", id);
-  if (error) throw error;
+  if (Object.keys(payload).length > 0) {
+    const { error } = await supabase.from("services").update(payload).eq("id", id);
+    if (error) throw error;
+  }
+  
+  if (data.imageUrl !== undefined) {
+    try {
+      await supabase.from("services").update({ image_url: data.imageUrl }).eq("id", id);
+    } catch (e) {
+      console.warn("Failed to update image_url", e);
+    }
+  }
 }
 
 export async function deleteService(id: string): Promise<void> {
@@ -612,17 +637,18 @@ export async function seedInitialDataSupabase(): Promise<void> {
       if (seedErr) {
         // Column might be missing — try without about_images
         const { about_images: _ignored, ...basePayload } = seedPayload;
-        await supabase.from("site_config").upsert({ id: "main", ...basePayload }).catch(() => {});
+        try {
+          await supabase.from("site_config").upsert({ id: "main", ...basePayload });
+        } catch (e) {}
       }
     } else if (!config.about_images || (Array.isArray(config.about_images) && config.about_images.length === 0)) {
       // Row exists but about_images is missing — patch it
-      await supabase
-        .from("site_config")
-        .update({ about_images: DEFAULT_CONFIG.aboutImages })
-        .eq("id", "main")
-        .catch(() => {
-          // Column doesn't exist yet — silently ignore (user needs to run schema migration)
-        });
+      try {
+        await supabase
+          .from("site_config")
+          .update({ about_images: DEFAULT_CONFIG.aboutImages })
+          .eq("id", "main");
+      } catch (e) {}
     }
 
     const { data: services } = await supabase.from("services").select("id").limit(1);
@@ -669,4 +695,13 @@ export async function seedInitialDataSupabase(): Promise<void> {
   } catch (err) {
     console.warn("Could not seed initial Supabase data:", err);
   }
+}
+
+export async function uploadServiceImage(file: File, id: string): Promise<string> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = `services/${id}_${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: true });
+  if (error) throw error;
+  return getStorageUrl(path);
 }
