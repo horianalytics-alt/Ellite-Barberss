@@ -491,8 +491,7 @@ export async function uploadLogo(file: File): Promise<string> {
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  const logoUrl = data.publicUrl;
+  const logoUrl = await getStorageUrl(path);
   await saveSiteConfig({ logoUrl });
   return logoUrl;
 }
