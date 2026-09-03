@@ -94,9 +94,17 @@ const SiteDataContext = createContext<SiteDataContextType>({
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(() =>
-    getLocalData(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG)
-  );
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
+    const saved = getLocalData<SiteConfig>(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG);
+    return {
+      ...DEFAULT_CONFIG,
+      ...saved,
+      aboutImages:
+        saved.aboutImages && saved.aboutImages.length > 0
+          ? saved.aboutImages
+          : DEFAULT_CONFIG.aboutImages,
+    };
+  });
   const [services, setServices] = useState<ServiceItem[]>(() =>
     getLocalData(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES)
   );
