@@ -392,6 +392,19 @@ export function subscribePackages(callback: (packages: PackageItem[]) => void): 
 
 // 4. Gallery & Storage
 const STORAGE_BUCKET = "ellite-barberss";
+const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 10; // 10 anos
+
+// O bucket é privado, então geramos uma URL assinada de longa duração.
+async function getStorageUrl(path: string): Promise<string> {
+  if (!supabase) throw new Error("Supabase não configurado");
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(path, SIGNED_URL_TTL);
+  if (error || !data?.signedUrl) {
+    throw error ?? new Error("Não foi possível gerar a URL da imagem");
+  }
+  return data.signedUrl;
+}
 
 export async function uploadGalleryImage(file: File, id: string): Promise<string> {
   if (!supabase) throw new Error("Supabase não configurado");
@@ -404,8 +417,7 @@ export async function uploadGalleryImage(file: File, id: string): Promise<string
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return getStorageUrl(path);
 }
 
 export async function saveGalleryItem(item: Omit<GalleryItem, "id">): Promise<string> {
@@ -479,8 +491,7 @@ export async function uploadLogo(file: File): Promise<string> {
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  const logoUrl = data.publicUrl;
+  const logoUrl = await getStorageUrl(path);
   await saveSiteConfig({ logoUrl });
   return logoUrl;
 }
