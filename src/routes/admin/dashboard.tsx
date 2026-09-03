@@ -8,6 +8,7 @@ import { PackagesEditor } from "../../components/admin/sections/PackagesEditor";
 import { GalleryEditor } from "../../components/admin/sections/GalleryEditor";
 import { LogoEditor } from "../../components/admin/sections/LogoEditor";
 import { StyleEditor } from "../../components/admin/sections/StyleEditor";
+import { AmbienteEditor } from "../../components/admin/sections/AmbienteEditor";
 import { SiteDataProvider } from "../../context/SiteDataContext";
 import { AuthProvider } from "../../context/AuthContext";
 import { isSupabaseConfigured } from "../../lib/supabase";
@@ -61,6 +62,7 @@ function AdminDashboard() {
           {activeSection === "servicos" && <ServicesEditor />}
           {activeSection === "pacotes" && <PackagesEditor />}
           {activeSection === "galeria" && <GalleryEditor />}
+          {activeSection === "ambiente" && <AmbienteEditor />}
           {activeSection === "logo" && <LogoEditor />}
           {activeSection === "estilo" && <StyleEditor />}
         </div>

@@ -21,6 +21,7 @@ export type AdminSection =
   | "servicos"
   | "pacotes"
   | "galeria"
+  | "ambiente"
   | "logo"
   | "estilo";
 
@@ -34,7 +35,8 @@ const navItems: { id: AdminSection; label: string; icon: React.ComponentType<{ c
   { id: "geral", label: "Informações Gerais", icon: Info },
   { id: "servicos", label: "Serviços", icon: Scissors },
   { id: "pacotes", label: "Pacotes Mensais", icon: Package },
-  { id: "galeria", label: "Galeria", icon: Image },
+  { id: "galeria", label: "Galeria de Cortes", icon: Image },
+  { id: "ambiente", label: "Ambiente Exclusivo", icon: Sparkles },
   { id: "logo", label: "Logo", icon: Upload },
   { id: "estilo", label: "Cores & Estilo", icon: Palette },
 ];

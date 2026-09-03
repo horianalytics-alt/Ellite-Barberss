@@ -1,10 +1,34 @@
-import React from "react";
-import { Award, Clock, ShieldCheck, Sparkles, Scissors, Users } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Award, Clock, ShieldCheck, Sparkles, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSiteData } from "../context/SiteDataContext";
 
 export function About() {
   const { siteConfig } = useSiteData();
-  const { hoursText } = siteConfig;
+  const { hoursText, aboutImages } = siteConfig;
+
+  const images = aboutImages && aboutImages.length > 0
+    ? aboutImages
+    : ["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto slide every 6 seconds
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
   return (
     <section id="sobre" className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d] relative overflow-hidden">
       {/* Background radial glow */}
@@ -31,26 +55,81 @@ export function About() {
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
-          {/* Visual Showcase (Image with luxury frame) */}
+          {/* Visual Showcase (Auto Slideshow Carousel Every 6 Seconds) */}
           <div className="lg:col-span-6 relative">
-            <div className="relative rounded-2xl overflow-hidden border border-[#C9A84C]/30 shadow-[0_0_30px_rgba(201,168,76,0.15)] group">
-              <img
-                src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"
-                alt="Barbearia Ellite Barberss"
-                className="w-full h-[400px] object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/80 backdrop-blur-md border border-white/10">
-                <p className="text-xs text-[#C9A84C] uppercase tracking-widest font-semibold mb-1">
-                  Ambiente Exclusivo
-                </p>
-                <p className="text-sm text-gray-200">
-                  Estrutura projetada para proporcionar conforto, descontração e uma experiência única.
-                </p>
+            <div className="relative rounded-2xl overflow-hidden border border-[#C9A84C]/30 shadow-[0_0_30px_rgba(201,168,76,0.15)] group h-[400px]">
+              {images.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                    idx === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`Ambiente Ellite Barberss ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+              ))}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent z-20 pointer-events-none" />
+
+              {/* Navigation Arrows (if more than 1 image) */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    aria-label="Foto anterior"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white/80 hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    aria-label="Próxima foto"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white/80 hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+
+              {/* Bottom Info Banner + Indicators */}
+              <div className="absolute bottom-4 left-4 right-4 z-30 flex flex-col gap-2">
+                <div className="p-4 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-[#C9A84C] uppercase tracking-widest font-semibold mb-0.5">
+                      Ambiente Exclusivo
+                    </p>
+                    <p className="text-xs text-gray-200 line-clamp-1">
+                      Estrutura projetada para proporcionar conforto, descontração e uma experiência única.
+                    </p>
+                  </div>
+
+                  {/* Dots Indicator */}
+                  {images.length > 1 && (
+                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                      {images.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentIndex(i)}
+                          aria-label={`Ir para foto ${i + 1}`}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            i === currentIndex
+                              ? "w-5 bg-[#C9A84C]"
+                              : "w-1.5 bg-white/30 hover:bg-white/60"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
             {/* Decorative Gold Accent Badge */}
-            <div className="absolute -bottom-5 -right-5 hidden sm:flex items-center gap-3 px-5 py-3 rounded-xl bg-[#141414] border border-[#C9A84C] shadow-xl">
+            <div className="absolute -bottom-5 -right-5 hidden sm:flex items-center gap-3 px-5 py-3 rounded-xl bg-[#141414] border border-[#C9A84C] shadow-xl z-30">
               <Award className="w-6 h-6 text-[#C9A84C]" />
               <div>
                 <p className="text-xs text-gray-400">Padrão de Qualidade</p>

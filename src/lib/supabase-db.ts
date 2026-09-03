@@ -13,6 +13,7 @@ export interface SiteConfig {
   logoUrl: string;
   accentColor: string;
   backgroundColor: string;
+  aboutImages: string[];
 }
 
 export interface ServiceItem {
@@ -64,6 +65,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
   logoUrl: "",
   accentColor: "#C9A84C",
   backgroundColor: "#0a0a0a",
+  aboutImages: [
+    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
+  ],
 };
 
 export const DEFAULT_SERVICES: ServiceItem[] = [
@@ -121,6 +125,17 @@ export const DEFAULT_GALLERY: GalleryItem[] = [
 
 function mapDbConfigToFrontend(row: any): SiteConfig {
   if (!row) return DEFAULT_CONFIG;
+  let aboutImgs: string[] = DEFAULT_CONFIG.aboutImages;
+  if (Array.isArray(row.about_images)) {
+    aboutImgs = row.about_images;
+  } else if (typeof row.about_images === "string") {
+    try {
+      aboutImgs = JSON.parse(row.about_images);
+    } catch {
+      aboutImgs = DEFAULT_CONFIG.aboutImages;
+    }
+  }
+
   return {
     barbershopName: row.barbershop_name ?? DEFAULT_CONFIG.barbershopName,
     heroTitle: row.hero_title ?? DEFAULT_CONFIG.heroTitle,
@@ -132,6 +147,7 @@ function mapDbConfigToFrontend(row: any): SiteConfig {
     logoUrl: row.logo_url ?? DEFAULT_CONFIG.logoUrl,
     accentColor: row.accent_color ?? DEFAULT_CONFIG.accentColor,
     backgroundColor: row.background_color ?? DEFAULT_CONFIG.backgroundColor,
+    aboutImages: aboutImgs && aboutImgs.length > 0 ? aboutImgs : DEFAULT_CONFIG.aboutImages,
   };
 }
 
@@ -147,6 +163,7 @@ function mapFrontendConfigToDb(config: Partial<SiteConfig>): any {
   if (config.logoUrl !== undefined) result.logo_url = config.logoUrl;
   if (config.accentColor !== undefined) result.accent_color = config.accentColor;
   if (config.backgroundColor !== undefined) result.background_color = config.backgroundColor;
+  if (config.aboutImages !== undefined) result.about_images = config.aboutImages;
   result.updated_at = new Date().toISOString();
   return result;
 }
@@ -494,6 +511,21 @@ export async function uploadLogo(file: File): Promise<string> {
   const logoUrl = await getStorageUrl(path);
   await saveSiteConfig({ logoUrl });
   return logoUrl;
+}
+
+// 5.1 Ambiente Images Upload
+export async function uploadAmbienteImage(file: File, id: string): Promise<string> {
+  if (!supabase) throw new Error("Supabase não configurado");
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `ambiente/${id}_${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: true,
+  });
+  if (error) throw error;
+
+  return await getStorageUrl(path);
 }
 
 // 6. Automatic Seeding (if Supabase tables are empty)

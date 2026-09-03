@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.site_config (
   logo_url TEXT DEFAULT '',
   accent_color TEXT NOT NULL DEFAULT '#C9A84C',
   background_color TEXT NOT NULL DEFAULT '#0a0a0a',
+  about_images JSONB NOT NULL DEFAULT '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"]'::jsonb,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
