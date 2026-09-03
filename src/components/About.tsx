@@ -1,7 +1,10 @@
 import React from "react";
 import { Award, Clock, ShieldCheck, Sparkles, Scissors, Users } from "lucide-react";
+import { useSiteData } from "../context/SiteDataContext";
 
 export function About() {
+  const { siteConfig } = useSiteData();
+  const { hoursText } = siteConfig;
   return (
     <section id="sobre" className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d] relative overflow-hidden">
       {/* Background radial glow */}
@@ -99,7 +102,7 @@ export function About() {
                 </h4>
               </div>
               <p className="text-gray-200 text-base font-medium">
-                Segunda a Domingo: <span className="text-[#C9A84C] font-bold">09h às 20h</span>
+                {hoursText}
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 Atendimento pontual com horário agendado ou por ordem de chegada.

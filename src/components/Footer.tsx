@@ -1,12 +1,10 @@
 import React from "react";
 import { Scissors, MapPin, Clock, Phone, Instagram, Calendar } from "lucide-react";
+import { useSiteData } from "../context/SiteDataContext";
 
-interface FooterProps {
-  booksyUrl: string;
-  whatsappUrl: string;
-}
-
-export function Footer({ booksyUrl, whatsappUrl }: FooterProps) {
+export function Footer() {
+  const { siteConfig } = useSiteData();
+  const { booksyUrl, whatsappUrl, address, hoursText } = siteConfig;
   return (
     <footer className="bg-[#070707] text-gray-400 pt-16 pb-12 px-4 sm:px-6 lg:px-8 border-t border-[#C9A84C]/20">
       <div className="max-w-7xl mx-auto">
@@ -91,8 +89,7 @@ export function Footer({ booksyUrl, whatsappUrl }: FooterProps) {
               Horários
             </h4>
             <div className="space-y-2 text-xs">
-              <p className="text-gray-300 font-medium">Segunda a Domingo:</p>
-              <p className="text-[#E0C068] font-bold">09:00 às 20:00</p>
+              <p className="text-[#E0C068] font-bold">{hoursText}</p>
               <p className="text-gray-500 pt-2">
                 Atendimento por agendamento via Booksy ou ordem de chegada.
               </p>
@@ -105,7 +102,7 @@ export function Footer({ booksyUrl, whatsappUrl }: FooterProps) {
               Agendamento
             </h4>
             <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-              Rua Prudente de Moraes, N10, loja de frente, Arujá-SP
+              {address}
             </p>
             <a
               href={booksyUrl}
