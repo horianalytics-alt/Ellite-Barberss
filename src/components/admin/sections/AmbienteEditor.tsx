@@ -1,6 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
-  Upload,
   Trash2,
   AlertCircle,
   Loader2,
@@ -20,7 +19,6 @@ import {
 import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
-// Helper to convert file to base64 for persistent local storage
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -31,35 +29,44 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export function AmbienteEditor() {
-  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
-  const [images, setImages] = useState<string[]>(
-    siteConfig.aboutImages && siteConfig.aboutImages.length > 0
-      ? siteConfig.aboutImages
-      : [
-          "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
-          "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80",
-          "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1200&q=80",
-        ]
-  );
+  const { siteConfig, updateSiteConfigLocal } = useSiteData();
+
+  // Initialize ONCE from context — do NOT re-sync from context on every render.
+  // We are the sole owner of this state while the editor is mounted.
+  const [images, setImages] = useState<string[]>(() => {
+    if (siteConfig.aboutImages && siteConfig.aboutImages.length > 0) {
+      return [...siteConfig.aboutImages];
+    }
+    return [
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1200&q=80",
+    ];
+  });
+
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [uploadError, setUploadError] = useState<string | null>(null);
-  
-  // Custom Modal for Delete Confirmation
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
-
-  // Direct URL Input
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    if (siteConfig.aboutImages && siteConfig.aboutImages.length > 0) {
-      setImages(siteConfig.aboutImages);
+  // Persist to localStorage + Supabase, WITHOUT calling refreshSiteConfig (that causes the revert)
+  const persistImages = useCallback(async (imgs: string[]) => {
+    // 1. Immediately write to context & localStorage
+    updateSiteConfigLocal({ aboutImages: imgs });
+
+    // 2. Try Supabase — but never refresh/reload back from it
+    if (isSupabaseConfigured) {
+      try {
+        await saveSiteConfig({ aboutImages: imgs });
+      } catch (err) {
+        console.warn("Supabase save failed (changes still kept locally):", err);
+      }
     }
-  }, [siteConfig.aboutImages]);
+  }, [updateSiteConfigLocal]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -72,40 +79,26 @@ export function AmbienteEditor() {
       const newUrls: string[] = [];
 
       for (const file of files) {
-        let finalUrl = "";
+        // Convert to base64 first — guaranteed to work without network
+        let finalUrl = await fileToBase64(file);
 
-        // Read base64 first as offline/instant guarantee
-        const base64Data = await fileToBase64(file);
-        finalUrl = base64Data;
-
+        // Try cloud upload if Supabase is available
         if (isSupabaseConfigured) {
           try {
             const tempId = `amb-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-            const uploadedUrl = await uploadAmbienteImage(file, tempId);
-            if (uploadedUrl) {
-              finalUrl = uploadedUrl;
-            }
-          } catch (uploadErr: any) {
-            console.warn("Storage upload falhou, mantendo base64:", uploadErr);
+            const cloudUrl = await uploadAmbienteImage(file, tempId);
+            if (cloudUrl) finalUrl = cloudUrl;
+          } catch (uploadErr) {
+            console.warn("Cloud upload failed, keeping base64:", uploadErr);
           }
         }
 
         newUrls.push(finalUrl);
       }
 
-      const updatedImages = [...images, ...newUrls];
-      setImages(updatedImages);
-      updateSiteConfigLocal({ aboutImages: updatedImages });
-
-      if (isSupabaseConfigured) {
-        try {
-          await saveSiteConfig({ aboutImages: updatedImages });
-          await refreshSiteConfig();
-        } catch (dbErr) {
-          console.warn("Erro ao sincronizar config no Supabase:", dbErr);
-        }
-      }
-
+      const next = [...images, ...newUrls];
+      setImages(next);
+      await persistImages(next);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err: any) {
@@ -119,23 +112,14 @@ export function AmbienteEditor() {
 
   const handleAddCustomUrl = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customUrl.trim()) return;
+    const url = customUrl.trim();
+    if (!url) return;
 
-    const updatedImages = [...images, customUrl.trim()];
-    setImages(updatedImages);
-    updateSiteConfigLocal({ aboutImages: updatedImages });
+    const next = [...images, url];
+    setImages(next);
     setCustomUrl("");
     setShowUrlInput(false);
-
-    if (isSupabaseConfigured) {
-      try {
-        await saveSiteConfig({ aboutImages: updatedImages });
-        await refreshSiteConfig();
-      } catch (err) {
-        console.warn(err);
-      }
-    }
-
+    await persistImages(next);
     setStatus("success");
     setTimeout(() => setStatus("idle"), 3000);
   };
@@ -145,23 +129,16 @@ export function AmbienteEditor() {
     const index = deletingIndex;
     setDeletingIndex(null);
 
-    const updatedImages = images.filter((_, idx) => idx !== index);
-    const finalImages = updatedImages.length > 0 ? updatedImages : [
-      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"
-    ];
-
-    setImages(finalImages);
-    updateSiteConfigLocal({ aboutImages: finalImages });
-
-    if (isSupabaseConfigured) {
-      try {
-        await saveSiteConfig({ aboutImages: finalImages });
-        await refreshSiteConfig();
-      } catch (err) {
-        console.warn("Erro ao salvar após exclusão:", err);
-      }
+    // Always keep at least 1 photo
+    let next = images.filter((_, idx) => idx !== index);
+    if (next.length === 0) {
+      next = [
+        "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
+      ];
     }
 
+    setImages(next);
+    await persistImages(next);
     setStatus("success");
     setTimeout(() => setStatus("idle"), 3000);
   };
@@ -169,30 +146,16 @@ export function AmbienteEditor() {
   const handleMove = async (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= images.length) return;
     const next = [...images];
-    const item = next.splice(fromIndex, 1)[0];
+    const [item] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, item);
-
     setImages(next);
-    updateSiteConfigLocal({ aboutImages: next });
-
-    if (isSupabaseConfigured) {
-      try {
-        await saveSiteConfig({ aboutImages: next });
-        await refreshSiteConfig();
-      } catch (err) {
-        console.warn(err);
-      }
-    }
+    await persistImages(next);
   };
 
   const handleManualSave = async () => {
     setSaving(true);
     try {
-      updateSiteConfigLocal({ aboutImages: images });
-      if (isSupabaseConfigured) {
-        await saveSiteConfig({ aboutImages: images });
-        await refreshSiteConfig();
-      }
+      await persistImages(images);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err) {
@@ -209,7 +172,7 @@ export function AmbienteEditor() {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <p>
-            Supabase não configurado — as fotos do ambiente estão salvas localmente neste navegador com persistência total.
+            Supabase não configurado — as fotos do ambiente estão salvas localmente neste navegador.
           </p>
         </div>
       )}
@@ -221,12 +184,14 @@ export function AmbienteEditor() {
         </div>
       )}
 
-      {/* Info Card & Action */}
+      {/* Info Card + Actions */}
       <div className="p-4 rounded-2xl bg-[#141414] border border-[#C9A84C]/20 text-xs text-gray-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#C9A84C] shrink-0" />
           <span>
-            As fotos abaixo passam automaticamente na seção <strong>Sobre Nós (Ambiente Exclusivo)</strong> a cada <strong>6 segundos</strong>.
+            As fotos abaixo passam automaticamente na seção{" "}
+            <strong>Sobre Nós (Ambiente Exclusivo)</strong> a cada{" "}
+            <strong>6 segundos</strong>.
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -241,7 +206,7 @@ export function AmbienteEditor() {
           <button
             onClick={handleManualSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#C9A84C] text-black font-bold text-xs hover:bg-[#E0C068] disabled:opacity-60 transition-all shadow-[0_0_15px_rgba(201,168,76,0.2)]"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#C9A84C] text-black font-bold text-xs hover:bg-[#E0C068] disabled:opacity-60 transition-all"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Salvar Ordem
@@ -251,7 +216,10 @@ export function AmbienteEditor() {
 
       {/* URL Input Form */}
       {showUrlInput && (
-        <form onSubmit={handleAddCustomUrl} className="p-4 rounded-2xl bg-[#101010] border border-[#C9A84C]/40 flex gap-2 items-center">
+        <form
+          onSubmit={handleAddCustomUrl}
+          className="p-4 rounded-2xl bg-[#101010] border border-[#C9A84C]/40 flex gap-2 items-center"
+        >
           <input
             type="url"
             value={customUrl}
@@ -299,8 +267,12 @@ export function AmbienteEditor() {
               <ImagePlus className="w-7 h-7 text-[#C9A84C]" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-white">Adicionar Fotos do Ambiente Exclusivo</p>
-              <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP — Clique para selecionar do seu dispositivo</p>
+              <p className="text-sm font-semibold text-white">
+                Adicionar Fotos do Ambiente Exclusivo
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                PNG, JPG, WEBP — Clique para selecionar do seu dispositivo
+              </p>
             </div>
           </>
         )}
@@ -317,12 +289,17 @@ export function AmbienteEditor() {
               <CheckCircle2 className="w-3.5 h-3.5" /> Salvo com sucesso!
             </span>
           )}
+          {status === "error" && (
+            <span className="flex items-center gap-1.5 text-red-400 text-xs font-semibold">
+              <AlertCircle className="w-3.5 h-3.5" /> Erro ao salvar.
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {images.map((url, idx) => (
             <div
-              key={idx}
+              key={`${idx}-${url.slice(0, 30)}`}
               className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-[#141414] border border-white/10 hover:border-[#C9A84C]/50 transition-all shadow-md"
             >
               <img
@@ -371,7 +348,7 @@ export function AmbienteEditor() {
         </div>
       </div>
 
-      {/* Custom Confirmation Modal (Clean UI without browser popups) */}
+      {/* Custom Delete Confirmation Modal */}
       {deletingIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-3xl bg-[#141414] border border-[#C9A84C]/40 p-6 text-center shadow-2xl space-y-4">
@@ -397,7 +374,7 @@ export function AmbienteEditor() {
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition-colors shadow-lg"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition-colors"
               >
                 Sim, Excluir
               </button>

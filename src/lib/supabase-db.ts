@@ -236,8 +236,16 @@ function mapDbGalleryToFrontend(row: any): GalleryItem {
 // ─── CRUD Functions ───────────────────────────────────────────────────────────
 
 // 1. Site Config
+
+// Suppress Realtime callbacks for 4 seconds after each save so they
+// don't overwrite a fresh local state with stale DB data.
+let _suppressSiteConfigCallbacksUntil = 0;
+
 export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void> {
   if (!supabase) throw new Error("Supabase não configurado");
+
+  // Suppress realtime callbacks for 4s so the channel echo doesn't revert the UI
+  _suppressSiteConfigCallbacksUntil = Date.now() + 4000;
 
   const fullPayload = {
     id: "main",
@@ -290,6 +298,8 @@ export function subscribeSiteConfig(callback: (config: SiteConfig) => void): () 
       "postgres_changes",
       { event: "*", schema: "public", table: "site_config" },
       (payload) => {
+        // Skip echo callbacks during the suppression window (right after a save)
+        if (Date.now() < _suppressSiteConfigCallbacksUntil) return;
         if (payload.new) {
           callback(mapDbConfigToFrontend(payload.new));
         }
