@@ -175,7 +175,7 @@ export async function deleteService(id: string): Promise<void> {
 
 export async function reorderServices(services: ServiceItem[]): Promise<void> {
   if (!db) throw new Error("Firebase not configured");
-  const updates = services.map((s, i) => updateDoc(doc(db, "services", s.id), { order: i }));
+  const updates = services.map((s, i) => updateDoc(doc(db!, "services", s.id), { order: i }));
   await Promise.all(updates);
 }
 
@@ -239,7 +239,7 @@ export async function deleteGalleryItem(id: string): Promise<void> {
 
 export async function reorderGallery(items: GalleryItem[]): Promise<void> {
   if (!db) throw new Error("Firebase not configured");
-  const updates = items.map((item, i) => updateDoc(doc(db, "gallery", item.id), { order: i }));
+  const updates = items.map((item, i) => updateDoc(doc(db!, "gallery", item.id), { order: i }));
   await Promise.all(updates);
 }
 
