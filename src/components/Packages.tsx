@@ -1,7 +1,7 @@
 import React from "react";
 import { Sparkles, Check, Crown, Calendar, Users, Zap } from "lucide-react";
 import { useSiteData } from "../context/SiteDataContext";
-import { type PackageItem } from "../lib/firestore";
+import { type PackageItem } from "../lib/supabase-db";
 
 export function Packages() {
   const { siteConfig, packages } = useSiteData();
