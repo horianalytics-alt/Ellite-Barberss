@@ -80,7 +80,7 @@ function SortablePhoto({
 // ─── Main Editor ──────────────────────────────────────────────────────────────
 
 export function GalleryEditor() {
-  const { gallery } = useSiteData();
+  const { gallery, updateGalleryLocal, refreshGallery } = useSiteData();
   const [localGallery, setLocalGallery] = useState<GalleryItem[]>(gallery);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -100,10 +100,20 @@ export function GalleryEditor() {
     if (!over || active.id === over.id) return;
     const oldIndex = localGallery.findIndex((g) => g.id === active.id);
     const newIndex = localGallery.findIndex((g) => g.id === over.id);
-    const reordered = arrayMove(localGallery, oldIndex, newIndex);
+    const reordered = arrayMove(localGallery, oldIndex, newIndex).map((item, idx) => ({
+      ...item,
+      order: idx,
+    }));
     setLocalGallery(reordered);
+    updateGalleryLocal(reordered);
+
     if (isSupabaseConfigured) {
-      await reorderGallery(reordered).catch(console.error);
+      try {
+        await reorderGallery(reordered);
+        await refreshGallery();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -111,18 +121,22 @@ export function GalleryEditor() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
 
-    if (!isSupabaseConfigured) {
-      setUploadError("Supabase não configurado. Não é possível fazer upload de imagens.");
-      return;
-    }
-
     setUploading(true);
     setUploadError(null);
 
     try {
       for (const file of files) {
         const tempId = `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-        const url = await uploadGalleryImage(file, tempId);
+        let url = URL.createObjectURL(file);
+
+        if (isSupabaseConfigured) {
+          try {
+            url = await uploadGalleryImage(file, tempId);
+          } catch (uploadErr: any) {
+            console.warn("Storage upload failed, using local object URL fallback:", uploadErr);
+          }
+        }
+
         const newOrder = localGallery.length;
         const newItem: GalleryItem = {
           id: tempId,
@@ -131,12 +145,29 @@ export function GalleryEditor() {
           category: "Trabalhos",
           order: newOrder,
         };
-        const savedId = await saveGalleryItem({ url, title: newItem.title, category: newItem.category, order: newOrder });
-        setLocalGallery((prev) => [...prev, { ...newItem, id: savedId }]);
+
+        const nextGallery = [...localGallery, newItem];
+        setLocalGallery(nextGallery);
+        updateGalleryLocal(nextGallery);
+
+        if (isSupabaseConfigured) {
+          try {
+            const savedId = await saveGalleryItem({
+              url: newItem.url,
+              title: newItem.title,
+              category: newItem.category,
+              order: newOrder,
+            });
+            newItem.id = savedId;
+            await refreshGallery();
+          } catch (dbErr) {
+            console.error(dbErr);
+          }
+        }
       }
     } catch (err: any) {
       console.error(err);
-      setUploadError(err?.message || "Erro no upload. Verifique se o bucket 'ellite-barberss' existe no Supabase Storage.");
+      setUploadError(err?.message || "Erro no upload.");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -145,9 +176,17 @@ export function GalleryEditor() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Remover esta foto da galeria?")) return;
-    setLocalGallery((prev) => prev.filter((g) => g.id !== id));
+    const nextGallery = localGallery.filter((g) => g.id !== id);
+    setLocalGallery(nextGallery);
+    updateGalleryLocal(nextGallery);
+
     if (isSupabaseConfigured) {
-      await deleteGalleryItem(id).catch(console.error);
+      try {
+        await deleteGalleryItem(id);
+        await refreshGallery();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -156,7 +195,7 @@ export function GalleryEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado — upload de imagens requer Supabase Storage configurado.</p>
+          <p>Supabase não configurado — fotos estão salvas localmente neste navegador.</p>
         </div>
       )}
 
@@ -183,7 +222,7 @@ export function GalleryEditor() {
         {uploading ? (
           <>
             <Loader2 className="w-10 h-10 text-[#C9A84C] animate-spin" />
-            <p className="text-sm text-gray-300">Fazendo upload para o Supabase Storage...</p>
+            <p className="text-sm text-gray-300">Processando upload...</p>
           </>
         ) : (
           <>

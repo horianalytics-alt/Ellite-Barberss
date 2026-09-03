@@ -26,6 +26,33 @@ import {
 } from "../lib/supabase-db";
 import { isSupabaseConfigured } from "../lib/supabase";
 
+// ─── LocalStorage Cache Keys ──────────────────────────────────────────────────
+const STORAGE_KEYS = {
+  CONFIG: "ellite_barberss_site_config",
+  SERVICES: "ellite_barberss_services",
+  PACKAGES: "ellite_barberss_packages",
+  GALLERY: "ellite_barberss_gallery",
+};
+
+function getLocalData<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function setLocalData<T>(key: string, data: T) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (err) {
+    console.warn("Could not save to localStorage:", err);
+  }
+}
+
 // ─── Context Type ─────────────────────────────────────────────────────────────
 
 interface SiteDataContextType {
@@ -35,6 +62,10 @@ interface SiteDataContextType {
   gallery: GalleryItem[];
   loading: boolean;
   isSupabaseReady: boolean;
+  updateSiteConfigLocal: (config: Partial<SiteConfig>) => void;
+  updateServicesLocal: (services: ServiceItem[]) => void;
+  updatePackagesLocal: (packages: PackageItem[]) => void;
+  updateGalleryLocal: (gallery: GalleryItem[]) => void;
   refreshSiteConfig: () => Promise<void>;
   refreshServices: () => Promise<void>;
   refreshPackages: () => Promise<void>;
@@ -49,6 +80,10 @@ const SiteDataContext = createContext<SiteDataContextType>({
   gallery: DEFAULT_GALLERY,
   loading: false,
   isSupabaseReady: false,
+  updateSiteConfigLocal: () => {},
+  updateServicesLocal: () => {},
+  updatePackagesLocal: () => {},
+  updateGalleryLocal: () => {},
   refreshSiteConfig: async () => {},
   refreshServices: async () => {},
   refreshPackages: async () => {},
@@ -59,10 +94,18 @@ const SiteDataContext = createContext<SiteDataContextType>({
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
-  const [services, setServices] = useState<ServiceItem[]>(DEFAULT_SERVICES);
-  const [packages, setPackages] = useState<PackageItem[]>(DEFAULT_PACKAGES);
-  const [gallery, setGallery] = useState<GalleryItem[]>(DEFAULT_GALLERY);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(() =>
+    getLocalData(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG)
+  );
+  const [services, setServices] = useState<ServiceItem[]>(() =>
+    getLocalData(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES)
+  );
+  const [packages, setPackages] = useState<PackageItem[]>(() =>
+    getLocalData(STORAGE_KEYS.PACKAGES, DEFAULT_PACKAGES)
+  );
+  const [gallery, setGallery] = useState<GalleryItem[]>(() =>
+    getLocalData(STORAGE_KEYS.GALLERY, DEFAULT_GALLERY)
+  );
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
   // Apply theme CSS custom properties whenever colors change
@@ -70,6 +113,30 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--gold", siteConfig.accentColor || "#C9A84C");
     document.documentElement.style.setProperty("--site-bg", siteConfig.backgroundColor || "#0a0a0a");
   }, [siteConfig.accentColor, siteConfig.backgroundColor]);
+
+  // Save changes to localStorage cache
+  const updateSiteConfigLocal = React.useCallback((config: Partial<SiteConfig>) => {
+    setSiteConfig((prev) => {
+      const next = { ...prev, ...config };
+      setLocalData(STORAGE_KEYS.CONFIG, next);
+      return next;
+    });
+  }, []);
+
+  const updateServicesLocal = React.useCallback((svcs: ServiceItem[]) => {
+    setServices(svcs);
+    setLocalData(STORAGE_KEYS.SERVICES, svcs);
+  }, []);
+
+  const updatePackagesLocal = React.useCallback((pkgs: PackageItem[]) => {
+    setPackages(pkgs);
+    setLocalData(STORAGE_KEYS.PACKAGES, pkgs);
+  }, []);
+
+  const updateGalleryLocal = React.useCallback((items: GalleryItem[]) => {
+    setGallery(items);
+    setLocalData(STORAGE_KEYS.GALLERY, items);
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -84,18 +151,25 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
     const unsub1 = subscribeSiteConfig((config) => {
       setSiteConfig(config);
+      setLocalData(STORAGE_KEYS.CONFIG, config);
       tryResolve();
     });
     const unsub2 = subscribeServices((svcs) => {
-      setServices(svcs.length ? svcs : DEFAULT_SERVICES);
+      const next = svcs.length ? svcs : DEFAULT_SERVICES;
+      setServices(next);
+      setLocalData(STORAGE_KEYS.SERVICES, next);
       tryResolve();
     });
     const unsub3 = subscribePackages((pkgs) => {
-      setPackages(pkgs.length ? pkgs : DEFAULT_PACKAGES);
+      const next = pkgs.length ? pkgs : DEFAULT_PACKAGES;
+      setPackages(next);
+      setLocalData(STORAGE_KEYS.PACKAGES, next);
       tryResolve();
     });
     const unsub4 = subscribeGallery((items) => {
-      setGallery(items.length ? items : DEFAULT_GALLERY);
+      const next = items.length ? items : DEFAULT_GALLERY;
+      setGallery(next);
+      setLocalData(STORAGE_KEYS.GALLERY, next);
       tryResolve();
     });
 
@@ -109,26 +183,49 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
   const refreshSiteConfig = React.useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const config = await getSiteConfig();
-    setSiteConfig(config);
+    try {
+      const config = await getSiteConfig();
+      setSiteConfig(config);
+      setLocalData(STORAGE_KEYS.CONFIG, config);
+    } catch (err) {
+      console.error("Error refreshing site config:", err);
+    }
   }, []);
 
   const refreshServices = React.useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const svcs = await getServices();
-    setServices(svcs.length ? svcs : DEFAULT_SERVICES);
+    try {
+      const svcs = await getServices();
+      const next = svcs.length ? svcs : DEFAULT_SERVICES;
+      setServices(next);
+      setLocalData(STORAGE_KEYS.SERVICES, next);
+    } catch (err) {
+      console.error("Error refreshing services:", err);
+    }
   }, []);
 
   const refreshPackages = React.useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const pkgs = await getPackages();
-    setPackages(pkgs.length ? pkgs : DEFAULT_PACKAGES);
+    try {
+      const pkgs = await getPackages();
+      const next = pkgs.length ? pkgs : DEFAULT_PACKAGES;
+      setPackages(next);
+      setLocalData(STORAGE_KEYS.PACKAGES, next);
+    } catch (err) {
+      console.error("Error refreshing packages:", err);
+    }
   }, []);
 
   const refreshGallery = React.useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const items = await getGallery();
-    setGallery(items.length ? items : DEFAULT_GALLERY);
+    try {
+      const items = await getGallery();
+      const next = items.length ? items : DEFAULT_GALLERY;
+      setGallery(next);
+      setLocalData(STORAGE_KEYS.GALLERY, next);
+    } catch (err) {
+      console.error("Error refreshing gallery:", err);
+    }
   }, []);
 
   const refreshAll = React.useCallback(async () => {
@@ -149,6 +246,10 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         gallery,
         loading,
         isSupabaseReady: isSupabaseConfigured,
+        updateSiteConfigLocal,
+        updateServicesLocal,
+        updatePackagesLocal,
+        updateGalleryLocal,
         refreshSiteConfig,
         refreshServices,
         refreshPackages,

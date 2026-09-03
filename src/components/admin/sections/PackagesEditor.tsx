@@ -122,7 +122,7 @@ function PackageForm({ initial, onSave, onCancel }: PackageFormProps) {
 // ─── Main Editor ──────────────────────────────────────────────────────────────
 
 export function PackagesEditor() {
-  const { packages } = useSiteData();
+  const { packages, updatePackagesLocal, refreshPackages } = useSiteData();
   const [localPackages, setLocalPackages] = useState<PackageItem[]>(packages);
   const [editingPkg, setEditingPkg] = useState<PackageItem | null>(null);
   const [addingNew, setAddingNew] = useState(false);
@@ -134,27 +134,53 @@ export function PackagesEditor() {
   const handleSaveEdit = async (data: Omit<PackageItem, "id" | "order">) => {
     if (!editingPkg) return;
     const updated = { ...editingPkg, ...data };
-    setLocalPackages((prev) => prev.map((p) => (p.id === editingPkg.id ? updated : p)));
+    const nextPackages = localPackages.map((p) => (p.id === editingPkg.id ? updated : p));
+    setLocalPackages(nextPackages);
+    updatePackagesLocal(nextPackages);
+
     if (isSupabaseConfigured) {
-      await updatePackage(editingPkg.id, data).catch(console.error);
+      try {
+        await updatePackage(editingPkg.id, data);
+        await refreshPackages();
+      } catch (err) {
+        console.error(err);
+      }
     }
     setEditingPkg(null);
   };
 
   const handleSaveNew = async (data: Omit<PackageItem, "id" | "order">) => {
-    const newItem: PackageItem = { ...data, id: `pkg-${Date.now()}`, order: localPackages.length };
-    setLocalPackages((prev) => [...prev, newItem]);
+    const newOrder = localPackages.length;
+    const tempId = `pkg-${Date.now()}`;
+    const newItem: PackageItem = { ...data, id: tempId, order: newOrder };
+    const nextPackages = [...localPackages, newItem];
+    setLocalPackages(nextPackages);
+    updatePackagesLocal(nextPackages);
+
     if (isSupabaseConfigured) {
-      await savePackage({ ...data, order: localPackages.length }).catch(console.error);
+      try {
+        await savePackage({ ...data, order: newOrder });
+        await refreshPackages();
+      } catch (err) {
+        console.error(err);
+      }
     }
     setAddingNew(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Remover este pacote?")) return;
-    setLocalPackages((prev) => prev.filter((p) => p.id !== id));
+    const nextPackages = localPackages.filter((p) => p.id !== id);
+    setLocalPackages(nextPackages);
+    updatePackagesLocal(nextPackages);
+
     if (isSupabaseConfigured) {
-      await deletePackage(id).catch(console.error);
+      try {
+        await deletePackage(id);
+        await refreshPackages();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -163,7 +189,7 @@ export function PackagesEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado — alterações não serão persistidas no banco de dados.</p>
+          <p>Supabase não configurado — alterações estão salvas localmente neste navegador.</p>
         </div>
       )}
 

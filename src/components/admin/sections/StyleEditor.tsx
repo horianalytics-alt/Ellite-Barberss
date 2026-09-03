@@ -5,11 +5,16 @@ import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function StyleEditor() {
-  const { siteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
   const [accentColor, setAccentColor] = useState(siteConfig.accentColor || "#C9A84C");
   const [backgroundColor, setBackgroundColor] = useState(siteConfig.backgroundColor || "#0a0a0a");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  React.useEffect(() => {
+    setAccentColor(siteConfig.accentColor || "#C9A84C");
+    setBackgroundColor(siteConfig.backgroundColor || "#0a0a0a");
+  }, [siteConfig.accentColor, siteConfig.backgroundColor]);
 
   // Apply preview in real-time as user picks colors
   useEffect(() => {
@@ -26,16 +31,21 @@ export function StyleEditor() {
   };
 
   const handleSave = async () => {
-    if (!isSupabaseConfigured) {
-      setStatus("error");
-      return;
-    }
     setSaving(true);
     try {
-      await saveSiteConfig({ accentColor, backgroundColor });
+      // 1. Update local state immediately
+      updateSiteConfigLocal({ accentColor, backgroundColor });
+
+      // 2. Persist to Supabase if configured
+      if (isSupabaseConfigured) {
+        await saveSiteConfig({ accentColor, backgroundColor });
+        await refreshSiteConfig();
+      }
+
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setStatus("error");
     } finally {
       setSaving(false);
@@ -54,7 +64,7 @@ export function StyleEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado — alterações de cores são apenas para preview.</p>
+          <p>Supabase não configurado — alterações de cores estão salvas localmente neste navegador.</p>
         </div>
       )}
 
@@ -177,7 +187,7 @@ export function StyleEditor() {
 
         {status === "success" && (
           <span className="flex items-center gap-2 text-green-400 text-sm">
-            <CheckCircle2 className="w-4 h-4" /> Salvo no Supabase!
+            <CheckCircle2 className="w-4 h-4" /> Salvo com sucesso!
           </span>
         )}
         {status === "error" && (

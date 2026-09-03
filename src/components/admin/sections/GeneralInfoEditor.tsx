@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Save, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { saveSiteConfig, DEFAULT_CONFIG, type SiteConfig } from "../../../lib/supabase-db";
+import { saveSiteConfig, type SiteConfig } from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
@@ -20,11 +20,11 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function GeneralInfoEditor() {
-  const { siteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       barbershopName: siteConfig.barbershopName,
@@ -37,17 +37,35 @@ export function GeneralInfoEditor() {
     },
   });
 
+  // Sync form values whenever siteConfig in context updates (e.g. tab switches, remote fetches)
+  useEffect(() => {
+    reset({
+      barbershopName: siteConfig.barbershopName,
+      heroTitle: siteConfig.heroTitle,
+      heroSubtitle: siteConfig.heroSubtitle,
+      address: siteConfig.address,
+      hoursText: siteConfig.hoursText,
+      booksyUrl: siteConfig.booksyUrl,
+      whatsappUrl: siteConfig.whatsappUrl,
+    });
+  }, [siteConfig, reset]);
+
   const onSubmit = async (data: FormData) => {
-    if (!isSupabaseConfigured) {
-      setStatus("error");
-      return;
-    }
     setSaving(true);
     try {
-      await saveSiteConfig(data);
+      // 1. Update local state immediately so tabs switch without losing data
+      updateSiteConfigLocal(data);
+
+      // 2. Persist to Supabase if configured
+      if (isSupabaseConfigured) {
+        await saveSiteConfig(data);
+        await refreshSiteConfig();
+      }
+
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setStatus("error");
     } finally {
       setSaving(false);
@@ -59,7 +77,9 @@ export function GeneralInfoEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado. As alterações não serão salvas. Adicione as variáveis de ambiente (.env) e recarregue.</p>
+          <p>
+            Supabase não configurado — as alterações estão salvas localmente neste navegador. Para sincronizar na nuvem, configure as variáveis no seu <code className="text-amber-200">.env</code>.
+          </p>
         </div>
       )}
 
@@ -104,12 +124,12 @@ export function GeneralInfoEditor() {
 
           {status === "success" && (
             <span className="flex items-center gap-2 text-green-400 text-sm font-medium">
-              <CheckCircle2 className="w-4 h-4" /> Salvo com sucesso no Supabase!
+              <CheckCircle2 className="w-4 h-4" /> Salvo com sucesso!
             </span>
           )}
           {status === "error" && (
             <span className="flex items-center gap-2 text-red-400 text-sm font-medium">
-              <AlertCircle className="w-4 h-4" /> Erro ao salvar no Supabase.
+              <AlertCircle className="w-4 h-4" /> Erro ao salvar.
             </span>
           )}
         </div>

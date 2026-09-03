@@ -1,17 +1,21 @@
 import React, { useState, useRef } from "react";
 import { Upload, Loader2, AlertCircle, CheckCircle2, ImagePlus, Scissors } from "lucide-react";
-import { uploadLogo } from "../../../lib/supabase-db";
+import { uploadLogo, saveSiteConfig } from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function LogoEditor() {
-  const { siteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
   const [previewUrl, setPreviewUrl] = useState<string | null>(siteConfig.logoUrl || null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setPreviewUrl(siteConfig.logoUrl || null);
+  }, [siteConfig.logoUrl]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,21 +31,34 @@ export function LogoEditor() {
   };
 
   const handleSave = async () => {
-    if (!pendingFile) return;
-    if (!isSupabaseConfigured) {
-      setStatus("error");
-      setErrorMsg("Supabase não configurado.");
-      return;
-    }
+    if (!pendingFile && !previewUrl) return;
     setUploading(true);
     try {
-      await uploadLogo(pendingFile);
+      let finalUrl = previewUrl || "";
+
+      if (pendingFile) {
+        if (isSupabaseConfigured) {
+          try {
+            finalUrl = await uploadLogo(pendingFile);
+          } catch (uploadErr: any) {
+            console.warn("Storage upload failed, keeping local URL:", uploadErr);
+          }
+        }
+      }
+
+      updateSiteConfigLocal({ logoUrl: finalUrl });
+
+      if (isSupabaseConfigured) {
+        await saveSiteConfig({ logoUrl: finalUrl });
+        await refreshSiteConfig();
+      }
+
       setPendingFile(null);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err: any) {
       setStatus("error");
-      setErrorMsg(err?.message || "Erro ao fazer upload da logo no Supabase Storage.");
+      setErrorMsg(err?.message || "Erro ao salvar a logo.");
     } finally {
       setUploading(false);
     }
@@ -52,7 +69,7 @@ export function LogoEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado — upload não será persistido.</p>
+          <p>Supabase não configurado — a logo está salva localmente neste navegador.</p>
         </div>
       )}
 
@@ -113,7 +130,7 @@ export function LogoEditor() {
 
         {status === "success" && (
           <p className="flex items-center gap-2 text-green-400 text-sm mt-3">
-            <CheckCircle2 className="w-4 h-4" /> Logo salva com sucesso no Supabase!
+            <CheckCircle2 className="w-4 h-4" /> Logo salva com sucesso!
           </p>
         )}
         {status === "error" && (

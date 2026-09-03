@@ -169,7 +169,7 @@ function ServiceForm({ initial, onSave, onCancel }: ServiceFormProps) {
 // ─── Main Editor ─────────────────────────────────────────────────────────────
 
 export function ServicesEditor() {
-  const { services } = useSiteData();
+  const { services, updateServicesLocal, refreshServices } = useSiteData();
   const [localServices, setLocalServices] = useState<ServiceItem[]>(services);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [addingNew, setAddingNew] = useState(false);
@@ -189,39 +189,76 @@ export function ServicesEditor() {
     if (!over || active.id === over.id) return;
     const oldIndex = localServices.findIndex((s) => s.id === active.id);
     const newIndex = localServices.findIndex((s) => s.id === over.id);
-    const reordered = arrayMove(localServices, oldIndex, newIndex);
+    const reordered = arrayMove(localServices, oldIndex, newIndex).map((s, idx) => ({
+      ...s,
+      order: idx,
+    }));
     setLocalServices(reordered);
+    updateServicesLocal(reordered);
+
     if (isSupabaseConfigured) {
       setSavingOrder(true);
-      await reorderServices(reordered).catch(console.error);
-      setSavingOrder(false);
+      try {
+        await reorderServices(reordered);
+        await refreshServices();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSavingOrder(false);
+      }
     }
   };
 
   const handleSaveEdit = async (data: Omit<ServiceItem, "id" | "order">) => {
     if (!editingService) return;
     const updated = { ...editingService, ...data };
-    setLocalServices((prev) => prev.map((s) => (s.id === editingService.id ? updated : s)));
+    const nextServices = localServices.map((s) => (s.id === editingService.id ? updated : s));
+    setLocalServices(nextServices);
+    updateServicesLocal(nextServices);
+
     if (isSupabaseConfigured) {
-      await updateService(editingService.id, data).catch(console.error);
+      try {
+        await updateService(editingService.id, data);
+        await refreshServices();
+      } catch (err) {
+        console.error(err);
+      }
     }
     setEditingService(null);
   };
 
   const handleSaveNew = async (data: Omit<ServiceItem, "id" | "order">) => {
     const newOrder = localServices.length;
-    const newItem: ServiceItem = { ...data, id: `svc-${Date.now()}`, order: newOrder };
-    setLocalServices((prev) => [...prev, newItem]);
+    const tempId = `svc-${Date.now()}`;
+    const newItem: ServiceItem = { ...data, id: tempId, order: newOrder };
+    const nextServices = [...localServices, newItem];
+    setLocalServices(nextServices);
+    updateServicesLocal(nextServices);
+
     if (isSupabaseConfigured) {
-      await saveService({ ...data, order: newOrder }).catch(console.error);
+      try {
+        await saveService({ ...data, order: newOrder });
+        await refreshServices();
+      } catch (err) {
+        console.error(err);
+      }
     }
     setAddingNew(false);
   };
 
   const handleDelete = async (id: string) => {
-    setLocalServices((prev) => prev.filter((s) => s.id !== id));
+    if (!confirm("Remover este serviço?")) return;
+    const nextServices = localServices.filter((s) => s.id !== id);
+    setLocalServices(nextServices);
+    updateServicesLocal(nextServices);
+
     if (isSupabaseConfigured) {
-      await deleteService(id).catch(console.error);
+      try {
+        await deleteService(id);
+        await refreshServices();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -230,7 +267,7 @@ export function ServicesEditor() {
       {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Supabase não configurado — alterações não serão persistidas no banco de dados.</p>
+          <p>Supabase não configurado — alterações estão salvas localmente neste navegador.</p>
         </div>
       )}
 
