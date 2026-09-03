@@ -102,7 +102,7 @@ export function About() {
                     <p className="text-xs text-[#C9A84C] uppercase tracking-widest font-semibold mb-0.5">
                       Ambiente Exclusivo
                     </p>
-                    <p className="text-xs text-gray-200 line-clamp-1">
+                    <p className="text-xs text-gray-200">
                       Estrutura projetada para proporcionar conforto, descontração e uma experiência única.
                     </p>
                   </div>
@@ -145,7 +145,7 @@ export function About() {
                 <div className="w-12 h-12 rounded-xl bg-[#0a0a0a] border border-[#C9A84C]/40 flex items-center justify-center shrink-0">
                   <Scissors className="w-6 h-6 text-[#C9A84C]" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-serif text-lg font-bold text-white mb-2">
                     Profissionais de Alto Padrão
                   </h3>
@@ -161,7 +161,7 @@ export function About() {
                 <div className="w-12 h-12 rounded-xl bg-[#0a0a0a] border border-[#C9A84C]/40 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-serif text-lg font-bold text-white mb-2">
                     Produtos & Higiene Rigorosa
                   </h3>

@@ -72,40 +72,44 @@ export function Hero() {
             href={booksyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 min-h-[52px] rounded-full bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black font-serif font-bold text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(201,168,76,0.35)] hover:shadow-[0_0_45px_rgba(201,168,76,0.6)] hover:scale-[1.03] transition-all duration-300 animate-[pulse_2s_ease-in-out_infinite]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 min-h-[56px] rounded-full bg-[#C9A84C] text-[#0a0a0a] font-serif font-bold text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(201,168,76,0.35)] hover:shadow-[0_0_45px_rgba(201,168,76,0.6)] hover:scale-[1.03] transition-all duration-300 animate-[pulse_2s_ease-in-out_infinite]"
           >
             <Calendar className="w-5 h-5" />
             Agendar Agora
           </a>
           <a
             href="#servicos"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[52px] rounded-full border border-white/20 bg-black/40 backdrop-blur-sm text-gray-200 font-medium text-sm sm:text-base hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all duration-300"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[56px] rounded-full border border-white/20 bg-black/40 backdrop-blur-sm text-gray-200 font-medium text-sm sm:text-base hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all duration-300"
           >
             Ver Serviços & Preços
           </a>
         </div>
 
         {/* Highlights Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl pt-8 border-t border-[#C9A84C]/20">
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
-            <Clock className="w-5 h-5 text-[#C9A84C]" />
-            <div className="text-left">
-              <p className="text-xs text-[#A0A0A0]">Horário</p>
-              <p className="text-sm font-semibold text-white">{hoursText}</p>
+        <div className="flex flex-col sm:flex-row sm:grid sm:grid-cols-3 gap-2 sm:gap-4 w-full max-w-3xl pt-8 border-t border-[#C9A84C]/20">
+          <div className="flex items-center justify-center sm:justify-start gap-3 w-full px-4 py-[10px] rounded-lg border border-[#C9A84C]/30 bg-[#121212]/70">
+            <Clock className="w-5 h-5 text-[#C9A84C] shrink-0" />
+            <div className="text-left flex-1">
+              <p className="text-xs text-[#A0A0A0] mb-0.5">Horário</p>
+              <div className="text-[12px] whitespace-normal leading-tight font-semibold text-white">
+                {(hoursText ? hoursText.split("\n") : []).map((line, idx) => (
+                  <p key={idx}>{line}</p>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
-            <MapPin className="w-5 h-5 text-[#C9A84C]" />
-            <div className="text-left">
-              <p className="text-xs text-[#A0A0A0]">Localização</p>
-              <p className="text-sm font-semibold text-white">Centro • Arujá-SP</p>
+          <div className="flex items-center justify-center sm:justify-start gap-3 w-full px-4 py-[10px] rounded-lg border border-[#C9A84C]/30 bg-[#121212]/70">
+            <MapPin className="w-5 h-5 text-[#C9A84C] shrink-0" />
+            <div className="text-left flex-1">
+              <p className="text-xs text-[#A0A0A0] mb-0.5">Localização</p>
+              <p className="text-[12px] whitespace-normal leading-tight font-semibold text-white">Centro • Arujá-SP</p>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
-            <Star className="w-5 h-5 text-[#C9A84C] fill-[#C9A84C]" />
-            <div className="text-left">
-              <p className="text-xs text-[#A0A0A0]">Avaliação</p>
-              <p className="text-sm font-semibold text-white">Excelência 5 Estrelas</p>
+          <div className="flex items-center justify-center sm:justify-start gap-3 w-full px-4 py-[10px] rounded-lg border border-[#C9A84C]/30 bg-[#121212]/70">
+            <Star className="w-5 h-5 text-[#C9A84C] shrink-0 fill-[#C9A84C]" />
+            <div className="text-left flex-1">
+              <p className="text-xs text-[#A0A0A0] mb-0.5">Avaliação</p>
+              <p className="text-[12px] whitespace-normal leading-tight font-semibold text-white">Excelência 5 Estrelas</p>
             </div>
           </div>
         </div>
