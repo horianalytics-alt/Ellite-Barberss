@@ -44,7 +44,7 @@ export function About() {
             </span>
           </div>
           <h2 className="font-serif text-3xl sm:text-5xl font-bold text-white mb-6">
-            A <span className="text-gold-gradient">Ellite Barberss</span>
+            A <span className="text-[#C9A84C]">Ellite Barberss</span>
           </h2>
           <div className="w-20 h-[2px] bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mx-auto mb-8" />
           <p className="text-lg sm:text-xl text-gray-300 leading-relaxed font-light">
@@ -81,14 +81,14 @@ export function About() {
                   <button
                     onClick={prevSlide}
                     aria-label="Foto anterior"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white/80 hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={nextSlide}
                     aria-label="Próxima foto"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white/80 hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/60 text-white hover:text-[#C9A84C] hover:bg-black/90 border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -118,7 +118,7 @@ export function About() {
                           className={`h-1.5 rounded-full transition-all duration-300 ${
                             i === currentIndex
                               ? "w-5 bg-[#C9A84C]"
-                              : "w-1.5 bg-white/30 hover:bg-white/60"
+                              : "w-1.5 bg-white/50 hover:bg-white/80"
                           }`}
                         />
                       ))}
@@ -132,7 +132,7 @@ export function About() {
             <div className="absolute -bottom-5 -right-5 hidden sm:flex items-center gap-3 px-5 py-3 rounded-xl bg-[#141414] border border-[#C9A84C] shadow-xl z-30">
               <Award className="w-6 h-6 text-[#C9A84C]" />
               <div>
-                <p className="text-xs text-gray-400">Padrão de Qualidade</p>
+                <p className="text-xs text-[#A0A0A0]">Padrão de Qualidade</p>
                 <p className="text-sm font-bold text-white">100% Garantido</p>
               </div>
             </div>
@@ -149,7 +149,7 @@ export function About() {
                   <h3 className="font-serif text-lg font-bold text-white mb-2">
                     Profissionais de Alto Padrão
                   </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">
+                  <p className="text-sm text-[#A0A0A0] leading-relaxed">
                     Barbeiros qualificados e sempre atualizados com as melhores técnicas de corte clássico, moderno, visagismo e barboterapia.
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export function About() {
                   <h3 className="font-serif text-lg font-bold text-white mb-2">
                     Produtos & Higiene Rigorosa
                   </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">
+                  <p className="text-sm text-[#A0A0A0] leading-relaxed">
                     Utilizamos cosméticos masculinos premium e rigoroso controle de esterilização e toalhas quentes descartáveis/higienizadas.
                   </p>
                 </div>
@@ -187,7 +187,7 @@ export function About() {
                   </p>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[#A0A0A0] mt-1">
                 Atendimento pontual com horário agendado ou por ordem de chegada.
               </p>
             </div>

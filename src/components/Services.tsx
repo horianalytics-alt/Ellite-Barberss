@@ -28,12 +28,12 @@ export function Services() {
           </p>
 
           {/* Filter Tabs */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8 flex-wrap">
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
             {(["all", "cabelo", "outros"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                className={`px-6 py-3 min-h-[52px] flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${
                   activeTab === tab
                     ? "bg-[#C9A84C] text-black shadow-[0_0_15px_rgba(201,168,76,0.4)]"
                     : "bg-[#141414] text-gray-300 border border-white/10 hover:border-[#C9A84C]/50 hover:text-white"
@@ -66,26 +66,27 @@ export function Services() {
                       <Flame className="w-3 h-3 text-black fill-black" /> Destaque
                     </span>
                   )}
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-baseline justify-between gap-4 mb-2">
                       <h4 className="font-serif text-xl font-bold text-white group-hover:text-[#E0C068] transition-colors">{service.name}</h4>
-                      <span className="font-serif text-xl sm:text-2xl font-bold text-gold-gradient shrink-0">{service.price}</span>
+                      <span className="font-serif text-[22px] sm:text-[26px] font-bold text-[#C9A84C] shrink-0 animate-[pulse_3s_ease-in-out_infinite]">{service.price}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-[#C9A84C]/80 font-medium mb-3">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{service.time} de atendimento</span>
                     </div>
                     {service.description && (
-                      <p className="text-sm text-gray-400 font-light mb-6">{service.description}</p>
+                      <p className="text-sm text-[#A0A0A0] font-normal opacity-100 mb-6">{service.description}</p>
                     )}
                   </div>
+                  <div className="w-full h-[1px] bg-[#C9A84C]/20 mb-5 mt-2" />
                   <a
                     href={booksyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#C9A84C]/40 bg-black/40 text-xs font-semibold uppercase tracking-wider text-[#C9A84C] group-hover:bg-[#C9A84C] group-hover:text-black transition-all duration-300"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 min-h-[52px] rounded-xl bg-[#C9A84C] text-[#0a0a0a] font-bold uppercase tracking-wider hover:bg-[#E0C068] transition-all duration-300"
                   >
-                    <Calendar className="w-3.5 h-3.5" />
+                    <Calendar className="w-4 h-4" />
                     Agendar este Serviço
                   </a>
                 </div>
@@ -110,24 +111,25 @@ export function Services() {
                   key={service.id}
                   className="group relative p-5 rounded-2xl bg-[#121212] border border-white/10 hover:border-[#C9A84C]/70 transition-all duration-300 hover:shadow-[0_0_20px_rgba(201,168,76,0.15)] flex flex-col justify-between"
                 >
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h4 className="font-serif text-lg font-bold text-white group-hover:text-[#E0C068] transition-colors">{service.name}</h4>
-                      <span className="font-serif text-base font-bold text-[#C9A84C] shrink-0">{service.price}</span>
+                      <span className="font-serif text-lg sm:text-[20px] font-bold text-[#C9A84C] shrink-0 animate-[pulse_3s_ease-in-out_infinite]">{service.price}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-3">
+                    <div className="flex items-center gap-2 text-xs text-[#A0A0A0] font-medium mb-3">
                       <Clock className="w-3.5 h-3.5 text-[#C9A84C]/70" />
                       <span>{service.time}</span>
                     </div>
                     {service.description && (
-                      <p className="text-xs text-gray-400 font-light mb-5">{service.description}</p>
+                      <p className="text-sm text-[#A0A0A0] font-normal opacity-100 mb-5">{service.description}</p>
                     )}
                   </div>
+                  <div className="w-full h-[1px] bg-[#C9A84C]/20 mb-4 mt-2" />
                   <a
                     href={booksyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-2 rounded-lg border border-white/10 bg-black/40 text-[11px] font-semibold uppercase tracking-wider text-gray-300 group-hover:border-[#C9A84C] group-hover:bg-[#C9A84C] group-hover:text-black transition-all duration-300"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 min-h-[52px] rounded-lg border-2 border-[#C9A84C] bg-transparent text-sm font-bold uppercase tracking-wider text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#0a0a0a] transition-all duration-300"
                   >
                     Agendar
                   </a>

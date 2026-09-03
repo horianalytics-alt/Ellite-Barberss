@@ -54,15 +54,15 @@ export function Hero() {
           {heroTitle.includes(" ") ? (
             <>
               {heroTitle.substring(0, heroTitle.lastIndexOf(" "))} <br className="hidden sm:inline" />
-              <span className="text-gold-gradient italic">{heroTitle.substring(heroTitle.lastIndexOf(" ") + 1)}</span>
+              <span className="text-[#C9A84C] font-[900] italic">{heroTitle.substring(heroTitle.lastIndexOf(" ") + 1)}</span>
             </>
           ) : (
-            <span className="text-gold-gradient italic">{heroTitle}</span>
+            <span className="text-[#C9A84C] font-[900] italic">{heroTitle}</span>
           )}
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg sm:text-2xl text-gray-300 font-light tracking-wide max-w-2xl mb-10 leading-relaxed">
+        <p className="text-lg sm:text-2xl text-gray-300 font-light tracking-wide w-full max-w-[280px] sm:max-w-2xl mx-auto text-center mb-10 leading-relaxed">
           {heroSubtitle}
         </p>
 
@@ -72,14 +72,14 @@ export function Hero() {
             href={booksyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black font-serif font-bold text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(201,168,76,0.35)] hover:shadow-[0_0_45px_rgba(201,168,76,0.6)] hover:scale-[1.03] transition-all duration-300"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 min-h-[52px] rounded-full bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black font-serif font-bold text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(201,168,76,0.35)] hover:shadow-[0_0_45px_rgba(201,168,76,0.6)] hover:scale-[1.03] transition-all duration-300 animate-[pulse_2s_ease-in-out_infinite]"
           >
             <Calendar className="w-5 h-5" />
             Agendar Agora
           </a>
           <a
             href="#servicos"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-black/40 backdrop-blur-sm text-gray-200 font-medium text-sm sm:text-base hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all duration-300"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[52px] rounded-full border border-white/20 bg-black/40 backdrop-blur-sm text-gray-200 font-medium text-sm sm:text-base hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all duration-300"
           >
             Ver Serviços & Preços
           </a>
@@ -87,24 +87,24 @@ export function Hero() {
 
         {/* Highlights Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl pt-8 border-t border-[#C9A84C]/20">
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5">
+          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
             <Clock className="w-5 h-5 text-[#C9A84C]" />
             <div className="text-left">
-              <p className="text-xs text-gray-400">Horário</p>
+              <p className="text-xs text-[#A0A0A0]">Horário</p>
               <p className="text-sm font-semibold text-white">{hoursText}</p>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5">
+          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
             <MapPin className="w-5 h-5 text-[#C9A84C]" />
             <div className="text-left">
-              <p className="text-xs text-gray-400">Localização</p>
+              <p className="text-xs text-[#A0A0A0]">Localização</p>
               <p className="text-sm font-semibold text-white">Centro • Arujá-SP</p>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5">
+          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-[#121212]/70 border border-white/5 whitespace-nowrap">
             <Star className="w-5 h-5 text-[#C9A84C] fill-[#C9A84C]" />
             <div className="text-left">
-              <p className="text-xs text-gray-400">Avaliação</p>
+              <p className="text-xs text-[#A0A0A0]">Avaliação</p>
               <p className="text-sm font-semibold text-white">Excelência 5 Estrelas</p>
             </div>
           </div>

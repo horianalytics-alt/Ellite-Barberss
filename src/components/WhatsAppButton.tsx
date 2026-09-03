@@ -8,7 +8,7 @@ export function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(true);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+    <div className="fixed bottom-20 right-6 z-50 flex items-center gap-3">
       {showTooltip && (
         <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#141414] border border-[#C9A84C]/40 text-white shadow-2xl animate-in fade-in slide-in-from-right-3">
           <div className="flex flex-col">

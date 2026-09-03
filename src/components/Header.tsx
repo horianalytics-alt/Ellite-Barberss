@@ -114,7 +114,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-[#C9A84C] to-[#E0C068] text-black font-semibold text-sm uppercase tracking-wider"
+                className="w-full flex items-center justify-center gap-2 py-3 min-h-[52px] rounded-lg bg-gradient-to-r from-[#C9A84C] to-[#E0C068] text-black font-semibold text-sm uppercase tracking-wider"
               >
                 <Calendar className="w-4 h-4" />
                 Agendar Agora no Booksy

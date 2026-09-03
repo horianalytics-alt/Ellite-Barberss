@@ -22,12 +22,17 @@ export function Packages() {
       }`}
     >
       {isVip && pkg.badgeText && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black font-bold text-xs uppercase tracking-widest shadow-lg">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black font-bold text-xs uppercase tracking-widest shadow-lg whitespace-nowrap">
           <Crown className="w-3.5 h-3.5 fill-black" /> {pkg.badgeText}
         </div>
       )}
+      {!isVip && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-[#C9A84C] text-[#0a0a0a] font-bold text-xs uppercase tracking-widest shadow-lg whitespace-nowrap">
+          MAIS POPULAR
+        </div>
+      )}
 
-      <div>
+      <div className="flex-1">
         <div className="flex items-center justify-between gap-4 mb-4 mt-2">
           <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
             isVip ? "bg-[#C9A84C]/20 border border-[#C9A84C]/40 text-[#E0C068]" : "bg-white/5 border border-white/10 text-gray-300"
@@ -42,7 +47,7 @@ export function Packages() {
 
         <div className={`flex items-baseline gap-2 mb-8 pb-6 border-b ${isVip ? "border-[#C9A84C]/30" : "border-white/10"}`}>
           <span className="text-xs text-gray-400">R$</span>
-          <span className={`font-serif text-4xl sm:text-5xl font-bold ${isVip ? "text-gold-gradient" : "text-white"}`}>
+          <span className={`font-serif text-4xl sm:text-5xl font-bold ${isVip ? "text-[#C9A84C]" : "text-white"}`}>
             {pkg.price.split(",")[0]}
             <span className="text-2xl text-[#C9A84C]">,{pkg.price.split(",")[1] ?? "99"}</span>
           </span>
@@ -67,14 +72,10 @@ export function Packages() {
         href={booksyUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={`w-full inline-flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 ${
-          isVip
-            ? "bg-gradient-to-r from-[#C9A84C] via-[#E0C068] to-[#C9A84C] text-black shadow-[0_0_25px_rgba(201,168,76,0.4)] hover:shadow-[0_0_35px_rgba(201,168,76,0.6)] hover:scale-[1.02] font-serif"
-            : "border border-[#C9A84C]/50 bg-black/60 text-[#C9A84C] hover:bg-[#C9A84C] hover:text-black"
-        }`}
+        className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 min-h-[52px] rounded-xl font-bold text-sm uppercase tracking-wider text-center whitespace-normal break-words bg-[#C9A84C] text-[#0a0a0a] hover:bg-[#E0C068] transition-all duration-300 shadow-[0_4px_15px_rgba(201,168,76,0.3)] hover:shadow-[0_6px_25px_rgba(201,168,76,0.5)]"
       >
-        {isVip ? <Zap className="w-4 h-4 fill-black" /> : <Calendar className="w-4 h-4" />}
-        {isVip ? "Garantir Pacote " + pkg.name : "Contratar Pacote Individual"}
+        {isVip ? <Zap className="w-5 h-5 fill-black shrink-0" /> : <Calendar className="w-5 h-5 shrink-0" />}
+        <span className="leading-tight">{isVip ? "Garantir Pacote " + pkg.name : "Contratar Pacote Individual"}</span>
       </a>
     </div>
   );
