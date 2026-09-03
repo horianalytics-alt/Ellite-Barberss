@@ -12,13 +12,13 @@ const schema = z.object({
   heroTitle: z.string().min(1, "Obrigatório"),
   heroSubtitle: z.string().min(1, "Obrigatório"),
   address: z.string().min(1, "Obrigatório"),
-  addressComplement: z.string().optional(),
+  addressComplement: z.string().optional().default(""),
   hoursText: z.string().min(1, "Obrigatório"),
-  phoneText: z.string().optional(),
-  booksyUrl: z.string().url("URL inválida"),
-  whatsappUrl: z.string().url("URL inválida"),
-  googleMapsUrl: z.string().optional(),
-  googleMapsEmbedUrl: z.string().optional(),
+  phoneText: z.string().optional().default(""),
+  booksyUrl: z.string().min(1, "Obrigatório"),
+  whatsappUrl: z.string().min(1, "Obrigatório"),
+  googleMapsUrl: z.string().optional().default(""),
+  googleMapsEmbedUrl: z.string().optional().default(""),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -27,6 +27,7 @@ export function GeneralInfoEditor() {
   const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorDetails, setErrorDetails] = useState<string>("");
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -64,11 +65,18 @@ export function GeneralInfoEditor() {
 
   const onSubmit = async (data: FormData) => {
     setSaving(true);
+    setErrorDetails("");
     try {
       const payload: Partial<SiteConfig> = {
-        ...data,
+        barbershopName: data.barbershopName,
+        heroTitle: data.heroTitle,
+        heroSubtitle: data.heroSubtitle,
+        address: data.address,
         addressComplement: data.addressComplement || "",
+        hoursText: data.hoursText,
         phoneText: data.phoneText || "",
+        booksyUrl: data.booksyUrl,
+        whatsappUrl: data.whatsappUrl,
         googleMapsUrl: data.googleMapsUrl || "",
         googleMapsEmbedUrl: data.googleMapsEmbedUrl || "",
       };
@@ -84,8 +92,9 @@ export function GeneralInfoEditor() {
 
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Erro ao salvar:", err);
+      setErrorDetails(err?.message || "Erro desconhecido ao salvar no banco.");
       setStatus("error");
     } finally {
       setSaving(false);
@@ -258,7 +267,8 @@ export function GeneralInfoEditor() {
           )}
           {status === "error" && (
             <span className="flex items-center gap-2 text-red-400 text-sm font-medium">
-              <AlertCircle className="w-4 h-4" /> Erro ao salvar.
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {errorDetails ? `Erro: ${errorDetails}` : "Erro ao salvar."}
             </span>
           )}
         </div>

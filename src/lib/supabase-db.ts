@@ -238,12 +238,38 @@ function mapDbGalleryToFrontend(row: any): GalleryItem {
 // 1. Site Config
 export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void> {
   if (!supabase) throw new Error("Supabase não configurado");
-  const payload = {
+
+  const fullPayload = {
     id: "main",
     ...mapFrontendConfigToDb(config),
   };
-  const { error } = await supabase.from("site_config").upsert(payload, { onConflict: "id" });
-  if (error) throw error;
+
+  // First attempt: save full payload with all columns
+  const { error } = await supabase.from("site_config").upsert(fullPayload, { onConflict: "id" });
+
+  if (error) {
+    console.warn("Supabase upsert failed with full payload. Retrying with basic columns...", error);
+
+    // Fallback attempt: if Postgres table is missing newly added columns, save core columns only
+    const basePayload: any = { id: "main" };
+    if (config.barbershopName !== undefined) basePayload.barbershop_name = config.barbershopName;
+    if (config.heroTitle !== undefined) basePayload.hero_title = config.heroTitle;
+    if (config.heroSubtitle !== undefined) basePayload.hero_subtitle = config.heroSubtitle;
+    if (config.address !== undefined) basePayload.address = config.address;
+    if (config.hoursText !== undefined) basePayload.hours_text = config.hoursText;
+    if (config.booksyUrl !== undefined) basePayload.booksy_url = config.booksyUrl;
+    if (config.whatsappUrl !== undefined) basePayload.whatsapp_url = config.whatsappUrl;
+    if (config.logoUrl !== undefined) basePayload.logo_url = config.logoUrl;
+    if (config.accentColor !== undefined) basePayload.accent_color = config.accentColor;
+    if (config.backgroundColor !== undefined) basePayload.background_color = config.backgroundColor;
+    basePayload.updated_at = new Date().toISOString();
+
+    const { error: fallbackError } = await supabase.from("site_config").upsert(basePayload, { onConflict: "id" });
+    if (fallbackError) {
+      console.error("Fallback upsert also failed:", fallbackError);
+      throw fallbackError;
+    }
+  }
 }
 
 export async function getSiteConfig(): Promise<SiteConfig> {

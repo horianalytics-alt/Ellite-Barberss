@@ -10,16 +10,27 @@ CREATE TABLE IF NOT EXISTS public.site_config (
   barbershop_name TEXT NOT NULL DEFAULT 'ELLITE BARBERSS',
   hero_title TEXT NOT NULL DEFAULT 'Tradição e estilo no mesmo lugar',
   hero_subtitle TEXT NOT NULL DEFAULT 'Cortes masculinos e barba em Arujá-SP',
-  address TEXT NOT NULL DEFAULT 'Rua Prudente de Moraes, N10, loja de frente, Arujá-SP',
-  hours_text TEXT NOT NULL DEFAULT 'Segunda a domingo, 09h às 20h',
+  address TEXT NOT NULL DEFAULT 'Rua Prudente de Moraes, N10, Arujá-SP',
+  address_complement TEXT DEFAULT '(Loja de frente para a rua)',
+  hours_text TEXT NOT NULL DEFAULT 'Segunda a Sexta: 09h às 20h\nSábado: 09h às 19h\nDomingo: 10h às 15h',
+  phone_text TEXT DEFAULT '(11) 96485-2627',
   booksy_url TEXT NOT NULL DEFAULT 'https://booksy.com/widget-2024/index.html?realm=instagram&country=br&language=pt&fingerprint=cc34af3d-7dd2-4f4a-a3be-e3670f4eff74&channel=156ce701-bd15-4539-a838-e48841087851&id=395022&ba_s=Undefined',
   whatsapp_url TEXT NOT NULL DEFAULT 'https://wa.me/5511934706817?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Ellite%20Barberss.',
+  google_maps_url TEXT DEFAULT 'https://maps.google.com/?q=Rua+Prudente+de+Morais,+10+-+Vila+Flora+Regina,+Arujá+-+SP',
+  google_maps_embed_url TEXT DEFAULT '',
   logo_url TEXT DEFAULT '',
   accent_color TEXT NOT NULL DEFAULT '#C9A84C',
   background_color TEXT NOT NULL DEFAULT '#0a0a0a',
   about_images JSONB NOT NULL DEFAULT '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"]'::jsonb,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+-- Garantir colunas caso a tabela já exista
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS address_complement TEXT DEFAULT '(Loja de frente para a rua)';
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS phone_text TEXT DEFAULT '(11) 96485-2627';
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS google_maps_url TEXT DEFAULT '';
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS google_maps_embed_url TEXT DEFAULT '';
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS about_images JSONB DEFAULT '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"]'::jsonb;
 
 -- 2. Tabela de Serviços
 CREATE TABLE IF NOT EXISTS public.services (
