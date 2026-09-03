@@ -14,7 +14,162 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      gallery: {
+        Row: {
+          category: string | null
+          created_at: string
+          display_order: number
+          id: string
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id: string
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          badge_text: string | null
+          benefits: Json
+          created_at: string
+          description: string | null
+          display_order: number
+          highlighted: boolean
+          id: string
+          name: string
+          price: string | null
+          updated_at: string
+        }
+        Insert: {
+          badge_text?: string | null
+          benefits?: Json
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          highlighted?: boolean
+          id: string
+          name: string
+          price?: string | null
+          updated_at?: string
+        }
+        Update: {
+          badge_text?: string | null
+          benefits?: Json
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          highlighted?: boolean
+          id?: string
+          name?: string
+          price?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          name: string
+          popular: boolean
+          price: string | null
+          time: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id: string
+          name: string
+          popular?: boolean
+          price?: string | null
+          time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+          popular?: boolean
+          price?: string | null
+          time?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_config: {
+        Row: {
+          accent_color: string | null
+          address: string | null
+          background_color: string | null
+          barbershop_name: string | null
+          booksy_url: string | null
+          created_at: string
+          hero_subtitle: string | null
+          hero_title: string | null
+          hours_text: string | null
+          id: string
+          logo_url: string | null
+          updated_at: string
+          whatsapp_url: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          address?: string | null
+          background_color?: string | null
+          barbershop_name?: string | null
+          booksy_url?: string | null
+          created_at?: string
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          hours_text?: string | null
+          id: string
+          logo_url?: string | null
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          address?: string | null
+          background_color?: string | null
+          barbershop_name?: string | null
+          booksy_url?: string | null
+          created_at?: string
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          hours_text?: string | null
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
