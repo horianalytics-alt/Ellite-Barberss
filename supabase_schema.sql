@@ -30,7 +30,12 @@ ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS address_complement TEXT 
 ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS phone_text TEXT DEFAULT '(11) 96485-2627';
 ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS google_maps_url TEXT DEFAULT '';
 ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS google_maps_embed_url TEXT DEFAULT '';
-ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS about_images JSONB DEFAULT '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"]'::jsonb;
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS about_images JSONB DEFAULT '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1200&q=80"]'::jsonb;
+
+-- Populate about_images for rows that already exist with NULL or empty value
+UPDATE public.site_config
+SET about_images = '["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1200&q=80","https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1200&q=80"]'::jsonb
+WHERE about_images IS NULL OR about_images = '[]'::jsonb OR jsonb_array_length(about_images) = 0;
 
 -- 2. Tabela de Serviços
 CREATE TABLE IF NOT EXISTS public.services (

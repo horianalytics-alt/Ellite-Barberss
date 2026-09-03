@@ -158,8 +158,23 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     seedInitialDataSupabase().catch(console.error);
 
     const unsub1 = subscribeSiteConfig((config) => {
-      setSiteConfig(config);
-      setLocalData(STORAGE_KEYS.CONFIG, config);
+      // If Supabase doesn't have about_images stored (column missing or empty),
+      // it returns the default images. In that case, preserve what's in localStorage
+      // so user-saved changes aren't lost on page reload.
+      setSiteConfig((prev) => {
+        const defaultImgUrls = JSON.stringify(DEFAULT_CONFIG.aboutImages);
+        const dbImgUrls = JSON.stringify(config.aboutImages);
+        const keepLocalImages =
+          dbImgUrls === defaultImgUrls && // DB returned the hardcoded default
+          JSON.stringify(prev.aboutImages) !== defaultImgUrls; // we have something different saved locally
+
+        const merged: SiteConfig = {
+          ...config,
+          aboutImages: keepLocalImages ? prev.aboutImages : config.aboutImages,
+        };
+        setLocalData(STORAGE_KEYS.CONFIG, merged);
+        return merged;
+      });
       tryResolve();
     });
     const unsub2 = subscribeServices((svcs) => {

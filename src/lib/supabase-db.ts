@@ -252,31 +252,54 @@ export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void>
     ...mapFrontendConfigToDb(config),
   };
 
-  // First attempt: save full payload with all columns
-  const { error } = await supabase.from("site_config").upsert(fullPayload, { onConflict: "id" });
+  // Attempt 1: full payload with all columns (including about_images as JSONB array)
+  const { error: err1 } = await supabase.from("site_config").upsert(fullPayload, { onConflict: "id" });
 
-  if (error) {
-    console.warn("Supabase upsert failed with full payload. Retrying with basic columns...", error);
+  if (!err1) return; // success
 
-    // Fallback attempt: if Postgres table is missing newly added columns, save core columns only
-    const basePayload: any = { id: "main" };
-    if (config.barbershopName !== undefined) basePayload.barbershop_name = config.barbershopName;
-    if (config.heroTitle !== undefined) basePayload.hero_title = config.heroTitle;
-    if (config.heroSubtitle !== undefined) basePayload.hero_subtitle = config.heroSubtitle;
-    if (config.address !== undefined) basePayload.address = config.address;
-    if (config.hoursText !== undefined) basePayload.hours_text = config.hoursText;
-    if (config.booksyUrl !== undefined) basePayload.booksy_url = config.booksyUrl;
-    if (config.whatsappUrl !== undefined) basePayload.whatsapp_url = config.whatsappUrl;
-    if (config.logoUrl !== undefined) basePayload.logo_url = config.logoUrl;
-    if (config.accentColor !== undefined) basePayload.accent_color = config.accentColor;
-    if (config.backgroundColor !== undefined) basePayload.background_color = config.backgroundColor;
-    basePayload.updated_at = new Date().toISOString();
+  console.warn("Supabase upsert failed with full payload, trying fallback...", err1);
 
-    const { error: fallbackError } = await supabase.from("site_config").upsert(basePayload, { onConflict: "id" });
-    if (fallbackError) {
-      console.error("Fallback upsert also failed:", fallbackError);
-      throw fallbackError;
-    }
+  // Attempt 2: same payload but about_images serialized as JSON text string
+  // (works if column type is TEXT instead of JSONB)
+  if (config.aboutImages !== undefined) {
+    const payload2 = {
+      ...fullPayload,
+      about_images: JSON.stringify(config.aboutImages),
+    };
+    const { error: err2 } = await supabase.from("site_config").upsert(payload2, { onConflict: "id" });
+    if (!err2) return;
+    console.warn("Attempt 2 also failed:", err2);
+  }
+
+  // Attempt 3: fallback — core columns only (no about_images)
+  // Also store about_images in localStorage as the only persistent source
+  const basePayload: any = { id: "main" };
+  if (config.barbershopName !== undefined) basePayload.barbershop_name = config.barbershopName;
+  if (config.heroTitle !== undefined) basePayload.hero_title = config.heroTitle;
+  if (config.heroSubtitle !== undefined) basePayload.hero_subtitle = config.heroSubtitle;
+  if (config.address !== undefined) basePayload.address = config.address;
+  if (config.hoursText !== undefined) basePayload.hours_text = config.hoursText;
+  if (config.booksyUrl !== undefined) basePayload.booksy_url = config.booksyUrl;
+  if (config.whatsappUrl !== undefined) basePayload.whatsapp_url = config.whatsappUrl;
+  if (config.logoUrl !== undefined) basePayload.logo_url = config.logoUrl;
+  if (config.accentColor !== undefined) basePayload.accent_color = config.accentColor;
+  if (config.backgroundColor !== undefined) basePayload.background_color = config.backgroundColor;
+  basePayload.updated_at = new Date().toISOString();
+
+  const { error: err3 } = await supabase.from("site_config").upsert(basePayload, { onConflict: "id" });
+  if (err3) {
+    console.error("All three save attempts failed:", err3);
+    throw err3;
+  }
+
+  // Attempt 3 succeeded but about_images wasn't saved to DB.
+  // Warn developer so they know to run the schema migration.
+  if (config.aboutImages !== undefined) {
+    console.warn(
+      "⚠️ ELLITE BARBERSS: about_images was NOT saved to Supabase (column missing). " +
+      "Run the ALTER TABLE migration in supabase_schema.sql to add the about_images column. " +
+      "Images are preserved in localStorage only."
+    );
   }
 }
 
@@ -587,12 +610,25 @@ export async function uploadAmbienteImage(file: File, id: string): Promise<strin
 export async function seedInitialDataSupabase(): Promise<void> {
   if (!supabase) return;
   try {
-    const { data: config } = await supabase.from("site_config").select("id").eq("id", "main").maybeSingle();
+    const { data: config } = await supabase.from("site_config").select("id, about_images").eq("id", "main").maybeSingle();
     if (!config) {
-      await supabase.from("site_config").upsert({
-        id: "main",
-        ...mapFrontendConfigToDb(DEFAULT_CONFIG),
-      });
+      // Fresh database — insert full config including about_images
+      const seedPayload = { id: "main", ...mapFrontendConfigToDb(DEFAULT_CONFIG) };
+      const { error: seedErr } = await supabase.from("site_config").upsert(seedPayload);
+      if (seedErr) {
+        // Column might be missing — try without about_images
+        const { about_images: _ignored, ...basePayload } = seedPayload;
+        await supabase.from("site_config").upsert({ id: "main", ...basePayload }).catch(() => {});
+      }
+    } else if (!config.about_images || (Array.isArray(config.about_images) && config.about_images.length === 0)) {
+      // Row exists but about_images is missing — patch it
+      await supabase
+        .from("site_config")
+        .update({ about_images: DEFAULT_CONFIG.aboutImages })
+        .eq("id", "main")
+        .catch(() => {
+          // Column doesn't exist yet — silently ignore (user needs to run schema migration)
+        });
     }
 
     const { data: services } = await supabase.from("services").select("id").limit(1);
