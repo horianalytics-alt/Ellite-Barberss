@@ -7,9 +7,13 @@ export interface SiteConfig {
   heroTitle: string;
   heroSubtitle: string;
   address: string;
+  addressComplement: string;
   hoursText: string;
+  phoneText: string;
   booksyUrl: string;
   whatsappUrl: string;
+  googleMapsUrl: string;
+  googleMapsEmbedUrl: string;
   logoUrl: string;
   accentColor: string;
   backgroundColor: string;
@@ -58,10 +62,14 @@ export const DEFAULT_CONFIG: SiteConfig = {
   barbershopName: "ELLITE BARBERSS",
   heroTitle: "Tradição e estilo no mesmo lugar",
   heroSubtitle: "Cortes masculinos e barba em Arujá-SP",
-  address: "Rua Prudente de Moraes, N10, loja de frente, Arujá-SP",
-  hoursText: "Segunda a domingo, 09h às 20h",
+  address: "Rua Prudente de Moraes, N10, Arujá-SP",
+  addressComplement: "(Loja de frente para a rua)",
+  hoursText: "Segunda a Sexta: 09h às 20h\nSábado: 09h às 19h\nDomingo: 10h às 15h",
+  phoneText: "(11) 93470-6817",
   booksyUrl: BOOKSY_URL,
   whatsappUrl: WHATSAPP_URL,
+  googleMapsUrl: "https://maps.google.com/?q=Rua+Prudente+de+Morais,+10+-+Vila+Flora+Regina,+Arujá+-+SP",
+  googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3660.854619566938!2d-46.323565924765955!3d-23.39868777891361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce8751515ef861%3A0x738cb23e4e979a0!2sR.%20Prudente%20de%20Morais%2C%2010%20-%20Vila%20Flora%20Regina%2C%20Aruj%C3%A1%20-%20SP%2C%2007400-000!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr",
   logoUrl: "",
   accentColor: "#C9A84C",
   backgroundColor: "#0a0a0a",
@@ -141,9 +149,13 @@ function mapDbConfigToFrontend(row: any): SiteConfig {
     heroTitle: row.hero_title ?? DEFAULT_CONFIG.heroTitle,
     heroSubtitle: row.hero_subtitle ?? DEFAULT_CONFIG.heroSubtitle,
     address: row.address ?? DEFAULT_CONFIG.address,
+    addressComplement: row.address_complement ?? DEFAULT_CONFIG.addressComplement,
     hoursText: row.hours_text ?? DEFAULT_CONFIG.hoursText,
+    phoneText: row.phone_text ?? DEFAULT_CONFIG.phoneText,
     booksyUrl: row.booksy_url ?? DEFAULT_CONFIG.booksyUrl,
     whatsappUrl: row.whatsapp_url ?? DEFAULT_CONFIG.whatsappUrl,
+    googleMapsUrl: row.google_maps_url ?? DEFAULT_CONFIG.googleMapsUrl,
+    googleMapsEmbedUrl: row.google_maps_embed_url ?? DEFAULT_CONFIG.googleMapsEmbedUrl,
     logoUrl: row.logo_url ?? DEFAULT_CONFIG.logoUrl,
     accentColor: row.accent_color ?? DEFAULT_CONFIG.accentColor,
     backgroundColor: row.background_color ?? DEFAULT_CONFIG.backgroundColor,
@@ -157,9 +169,13 @@ function mapFrontendConfigToDb(config: Partial<SiteConfig>): any {
   if (config.heroTitle !== undefined) result.hero_title = config.heroTitle;
   if (config.heroSubtitle !== undefined) result.hero_subtitle = config.heroSubtitle;
   if (config.address !== undefined) result.address = config.address;
+  if (config.addressComplement !== undefined) result.address_complement = config.addressComplement;
   if (config.hoursText !== undefined) result.hours_text = config.hoursText;
+  if (config.phoneText !== undefined) result.phone_text = config.phoneText;
   if (config.booksyUrl !== undefined) result.booksy_url = config.booksyUrl;
   if (config.whatsappUrl !== undefined) result.whatsapp_url = config.whatsappUrl;
+  if (config.googleMapsUrl !== undefined) result.google_maps_url = config.googleMapsUrl;
+  if (config.googleMapsEmbedUrl !== undefined) result.google_maps_embed_url = config.googleMapsEmbedUrl;
   if (config.logoUrl !== undefined) result.logo_url = config.logoUrl;
   if (config.accentColor !== undefined) result.accent_color = config.accentColor;
   if (config.backgroundColor !== undefined) result.background_color = config.backgroundColor;

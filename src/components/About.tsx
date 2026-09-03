@@ -174,15 +174,19 @@ export function About() {
 
             {/* Operating Hours Box */}
             <div className="p-6 rounded-2xl bg-gradient-to-r from-[#181611] to-[#141414] border border-[#C9A84C]/40 shadow-[0_0_25px_rgba(201,168,76,0.1)]">
-              <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-center gap-3 mb-3">
                 <Clock className="w-6 h-6 text-[#C9A84C]" />
                 <h4 className="font-serif text-base sm:text-lg font-bold text-[#E0C068]">
                   Horário de Funcionamento
                 </h4>
               </div>
-              <p className="text-gray-200 text-base font-medium">
-                {hoursText}
-              </p>
+              <div className="space-y-1 mb-2">
+                {(hoursText ? hoursText.split("\n") : []).map((line, idx) => (
+                  <p key={idx} className="text-gray-200 text-sm sm:text-base font-medium">
+                    {line}
+                  </p>
+                ))}
+              </div>
               <p className="text-xs text-gray-400 mt-1">
                 Atendimento pontual com horário agendado ou por ordem de chegada.
               </p>

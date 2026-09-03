@@ -88,8 +88,12 @@ export function Footer() {
             <h4 className="font-serif text-sm font-bold text-white uppercase tracking-widest mb-4">
               Horários
             </h4>
-            <div className="space-y-2 text-xs">
-              <p className="text-[#E0C068] font-bold">{hoursText}</p>
+            <div className="space-y-1.5 text-xs">
+              {(hoursText ? hoursText.split("\n") : []).map((line, idx) => (
+                <p key={idx} className="text-[#E0C068] font-bold">
+                  {line}
+                </p>
+              ))}
               <p className="text-gray-500 pt-2">
                 Atendimento por agendamento via Booksy ou ordem de chegada.
               </p>
