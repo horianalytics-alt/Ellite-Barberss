@@ -30,9 +30,9 @@ import {
   deleteGalleryItem,
   reorderGallery,
   type GalleryItem,
-} from "../../../lib/firestore";
+} from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 // ─── Sortable Photo Card ──────────────────────────────────────────────────────
 
@@ -102,7 +102,7 @@ export function GalleryEditor() {
     const newIndex = localGallery.findIndex((g) => g.id === over.id);
     const reordered = arrayMove(localGallery, oldIndex, newIndex);
     setLocalGallery(reordered);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await reorderGallery(reordered).catch(console.error);
     }
   };
@@ -111,8 +111,8 @@ export function GalleryEditor() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
 
-    if (!isFirebaseConfigured) {
-      setUploadError("Firebase não configurado. Não é possível fazer upload.");
+    if (!isSupabaseConfigured) {
+      setUploadError("Supabase não configurado. Não é possível fazer upload de imagens.");
       return;
     }
 
@@ -121,7 +121,7 @@ export function GalleryEditor() {
 
     try {
       for (const file of files) {
-        const tempId = `gallery-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const tempId = `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         const url = await uploadGalleryImage(file, tempId);
         const newOrder = localGallery.length;
         const newItem: GalleryItem = {
@@ -134,8 +134,9 @@ export function GalleryEditor() {
         const savedId = await saveGalleryItem({ url, title: newItem.title, category: newItem.category, order: newOrder });
         setLocalGallery((prev) => [...prev, { ...newItem, id: savedId }]);
       }
-    } catch (err) {
-      setUploadError("Erro no upload. Verifique as permissões do Firebase Storage.");
+    } catch (err: any) {
+      console.error(err);
+      setUploadError(err?.message || "Erro no upload. Verifique se o bucket 'ellite-barberss' existe no Supabase Storage.");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -145,17 +146,17 @@ export function GalleryEditor() {
   const handleDelete = async (id: string) => {
     if (!confirm("Remover esta foto da galeria?")) return;
     setLocalGallery((prev) => prev.filter((g) => g.id !== id));
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await deleteGalleryItem(id).catch(console.error);
     }
   };
 
   return (
     <div className="space-y-5 max-w-4xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado — upload de imagens requer Firebase Storage configurado.</p>
+          <p>Supabase não configurado — upload de imagens requer Supabase Storage configurado.</p>
         </div>
       )}
 
@@ -182,7 +183,7 @@ export function GalleryEditor() {
         {uploading ? (
           <>
             <Loader2 className="w-10 h-10 text-[#C9A84C] animate-spin" />
-            <p className="text-sm text-gray-300">Fazendo upload...</p>
+            <p className="text-sm text-gray-300">Fazendo upload para o Supabase Storage...</p>
           </>
         ) : (
           <>

@@ -14,13 +14,13 @@ import {
   subscribeServices,
   subscribePackages,
   subscribeGallery,
-  seedInitialData,
+  seedInitialDataSupabase,
   type SiteConfig,
   type ServiceItem,
   type PackageItem,
   type GalleryItem,
-} from "../lib/firestore";
-import { isFirebaseConfigured } from "../lib/firebase";
+} from "../lib/supabase-db";
+import { isSupabaseConfigured } from "../lib/supabase";
 
 // ─── Context Type ─────────────────────────────────────────────────────────────
 
@@ -30,7 +30,7 @@ interface SiteDataContextType {
   packages: PackageItem[];
   gallery: GalleryItem[];
   loading: boolean;
-  isFirebaseReady: boolean;
+  isSupabaseReady: boolean;
 }
 
 const SiteDataContext = createContext<SiteDataContextType>({
@@ -39,7 +39,7 @@ const SiteDataContext = createContext<SiteDataContextType>({
   packages: DEFAULT_PACKAGES,
   gallery: DEFAULT_GALLERY,
   loading: false,
-  isFirebaseReady: false,
+  isSupabaseReady: false,
 });
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [services, setServices] = useState<ServiceItem[]>(DEFAULT_SERVICES);
   const [packages, setPackages] = useState<PackageItem[]>(DEFAULT_PACKAGES);
   const [gallery, setGallery] = useState<GalleryItem[]>(DEFAULT_GALLERY);
-  const [loading, setLoading] = useState(isFirebaseConfigured);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
 
   // Apply theme CSS custom properties whenever colors change
   useEffect(() => {
@@ -58,7 +58,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   }, [siteConfig.accentColor, siteConfig.backgroundColor]);
 
   useEffect(() => {
-    if (!isFirebaseConfigured) return;
+    if (!isSupabaseConfigured) return;
 
     let resolved = 0;
     const tryResolve = () => {
@@ -66,19 +66,43 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       if (resolved >= 4) setLoading(false);
     };
 
-    seedInitialData().catch(console.error);
+    seedInitialDataSupabase().catch(console.error);
 
-    const unsub1 = subscribeSiteConfig((config) => { setSiteConfig(config); tryResolve(); });
-    const unsub2 = subscribeServices((svcs) => { setServices(svcs.length ? svcs : DEFAULT_SERVICES); tryResolve(); });
-    const unsub3 = subscribePackages((pkgs) => { setPackages(pkgs.length ? pkgs : DEFAULT_PACKAGES); tryResolve(); });
-    const unsub4 = subscribeGallery((items) => { setGallery(items.length ? items : DEFAULT_GALLERY); tryResolve(); });
+    const unsub1 = subscribeSiteConfig((config) => {
+      setSiteConfig(config);
+      tryResolve();
+    });
+    const unsub2 = subscribeServices((svcs) => {
+      setServices(svcs.length ? svcs : DEFAULT_SERVICES);
+      tryResolve();
+    });
+    const unsub3 = subscribePackages((pkgs) => {
+      setPackages(pkgs.length ? pkgs : DEFAULT_PACKAGES);
+      tryResolve();
+    });
+    const unsub4 = subscribeGallery((items) => {
+      setGallery(items.length ? items : DEFAULT_GALLERY);
+      tryResolve();
+    });
 
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
+    return () => {
+      unsub1();
+      unsub2();
+      unsub3();
+      unsub4();
+    };
   }, []);
 
   return (
     <SiteDataContext.Provider
-      value={{ siteConfig, services, packages, gallery, loading, isFirebaseReady: isFirebaseConfigured }}
+      value={{
+        siteConfig,
+        services,
+        packages,
+        gallery,
+        loading,
+        isSupabaseReady: isSupabaseConfigured,
+      }}
     >
       {children}
     </SiteDataContext.Provider>

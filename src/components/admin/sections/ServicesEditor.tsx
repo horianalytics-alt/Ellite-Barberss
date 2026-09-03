@@ -33,9 +33,9 @@ import {
   saveService,
   reorderServices,
   type ServiceItem,
-} from "../../../lib/firestore";
+} from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 // ─── Sortable Row ─────────────────────────────────────────────────────────────
 
@@ -175,7 +175,6 @@ export function ServicesEditor() {
   const [addingNew, setAddingNew] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
 
-  // Sync from context when Firestore updates
   React.useEffect(() => {
     setLocalServices(services);
   }, [services]);
@@ -192,7 +191,7 @@ export function ServicesEditor() {
     const newIndex = localServices.findIndex((s) => s.id === over.id);
     const reordered = arrayMove(localServices, oldIndex, newIndex);
     setLocalServices(reordered);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       setSavingOrder(true);
       await reorderServices(reordered).catch(console.error);
       setSavingOrder(false);
@@ -202,8 +201,8 @@ export function ServicesEditor() {
   const handleSaveEdit = async (data: Omit<ServiceItem, "id" | "order">) => {
     if (!editingService) return;
     const updated = { ...editingService, ...data };
-    setLocalServices((prev) => prev.map((s) => s.id === editingService.id ? updated : s));
-    if (isFirebaseConfigured) {
+    setLocalServices((prev) => prev.map((s) => (s.id === editingService.id ? updated : s)));
+    if (isSupabaseConfigured) {
       await updateService(editingService.id, data).catch(console.error);
     }
     setEditingService(null);
@@ -213,7 +212,7 @@ export function ServicesEditor() {
     const newOrder = localServices.length;
     const newItem: ServiceItem = { ...data, id: `svc-${Date.now()}`, order: newOrder };
     setLocalServices((prev) => [...prev, newItem]);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await saveService({ ...data, order: newOrder }).catch(console.error);
     }
     setAddingNew(false);
@@ -221,17 +220,17 @@ export function ServicesEditor() {
 
   const handleDelete = async (id: string) => {
     setLocalServices((prev) => prev.filter((s) => s.id !== id));
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await deleteService(id).catch(console.error);
     }
   };
 
   return (
     <div className="space-y-5 max-w-3xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado — alterações não serão persistidas.</p>
+          <p>Supabase não configurado — alterações não serão persistidas no banco de dados.</p>
         </div>
       )}
 

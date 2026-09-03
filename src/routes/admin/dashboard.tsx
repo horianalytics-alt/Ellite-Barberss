@@ -10,7 +10,7 @@ import { LogoEditor } from "../../components/admin/sections/LogoEditor";
 import { StyleEditor } from "../../components/admin/sections/StyleEditor";
 import { SiteDataProvider } from "../../context/SiteDataContext";
 import { AuthProvider } from "../../context/AuthContext";
-import { isFirebaseConfigured } from "../../lib/firebase";
+import { isSupabaseConfigured } from "../../lib/supabase";
 import { AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/dashboard")({
@@ -41,15 +41,15 @@ function AdminDashboard() {
   return (
     <SiteDataProvider>
       <AdminLayout activeSection={activeSection} onSectionChange={setActiveSection}>
-        {/* Firebase not configured banner */}
-        {!isFirebaseConfigured && (
+        {/* Supabase not configured banner */}
+        {!isSupabaseConfigured && (
           <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold mb-1">Firebase não configurado</p>
+              <p className="font-semibold mb-1">Supabase não configurado</p>
               <p className="text-amber-300/80">
-                Configure as variáveis de ambiente (<code className="text-amber-200">.env</code>) com as credenciais do Firebase para persistir alterações.
-                Consulte o arquivo <code className="text-amber-200">.env.example</code> no repositório.
+                Configure as variáveis de ambiente (<code className="text-amber-200">.env</code>) com as credenciais do Supabase (<code className="text-amber-200">VITE_SUPABASE_URL</code> e <code className="text-amber-200">VITE_SUPABASE_ANON_KEY</code>) para persistir alterações.
+                Consulte o arquivo <code className="text-amber-200">.env.example</code> e execute o <code className="text-amber-200">supabase_schema.sql</code> no seu projeto.
               </p>
             </div>
           </div>

@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Save, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { saveSiteConfig, DEFAULT_CONFIG, type SiteConfig } from "../../../lib/firestore";
+import { saveSiteConfig, DEFAULT_CONFIG, type SiteConfig } from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 const schema = z.object({
   barbershopName: z.string().min(1, "Obrigatório"),
@@ -38,7 +38,7 @@ export function GeneralInfoEditor() {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!isFirebaseConfigured) {
+    if (!isSupabaseConfigured) {
       setStatus("error");
       return;
     }
@@ -56,15 +56,14 @@ export function GeneralInfoEditor() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado. As alterações não serão salvas. Adicione as variáveis de ambiente e recarregue.</p>
+          <p>Supabase não configurado. As alterações não serão salvas. Adicione as variáveis de ambiente (.env) e recarregue.</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* Row helper */}
         {(
           [
             { name: "barbershopName", label: "Nome da Barbearia" },
@@ -105,12 +104,12 @@ export function GeneralInfoEditor() {
 
           {status === "success" && (
             <span className="flex items-center gap-2 text-green-400 text-sm font-medium">
-              <CheckCircle2 className="w-4 h-4" /> Salvo com sucesso!
+              <CheckCircle2 className="w-4 h-4" /> Salvo com sucesso no Supabase!
             </span>
           )}
           {status === "error" && (
             <span className="flex items-center gap-2 text-red-400 text-sm font-medium">
-              <AlertCircle className="w-4 h-4" /> Erro ao salvar.
+              <AlertCircle className="w-4 h-4" /> Erro ao salvar no Supabase.
             </span>
           )}
         </div>

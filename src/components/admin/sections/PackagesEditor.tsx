@@ -8,16 +8,15 @@ import {
   Loader2,
   AlertCircle,
   Crown,
-  GripVertical,
 } from "lucide-react";
 import {
   updatePackage,
   deletePackage,
   savePackage,
   type PackageItem,
-} from "../../../lib/firestore";
+} from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 // ─── Package Form Modal ───────────────────────────────────────────────────────
 
@@ -135,8 +134,8 @@ export function PackagesEditor() {
   const handleSaveEdit = async (data: Omit<PackageItem, "id" | "order">) => {
     if (!editingPkg) return;
     const updated = { ...editingPkg, ...data };
-    setLocalPackages((prev) => prev.map((p) => p.id === editingPkg.id ? updated : p));
-    if (isFirebaseConfigured) {
+    setLocalPackages((prev) => prev.map((p) => (p.id === editingPkg.id ? updated : p)));
+    if (isSupabaseConfigured) {
       await updatePackage(editingPkg.id, data).catch(console.error);
     }
     setEditingPkg(null);
@@ -145,7 +144,7 @@ export function PackagesEditor() {
   const handleSaveNew = async (data: Omit<PackageItem, "id" | "order">) => {
     const newItem: PackageItem = { ...data, id: `pkg-${Date.now()}`, order: localPackages.length };
     setLocalPackages((prev) => [...prev, newItem]);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await savePackage({ ...data, order: localPackages.length }).catch(console.error);
     }
     setAddingNew(false);
@@ -154,17 +153,17 @@ export function PackagesEditor() {
   const handleDelete = async (id: string) => {
     if (!confirm("Remover este pacote?")) return;
     setLocalPackages((prev) => prev.filter((p) => p.id !== id));
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await deletePackage(id).catch(console.error);
     }
   };
 
   return (
     <div className="space-y-5 max-w-2xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado — alterações não serão persistidas.</p>
+          <p>Supabase não configurado — alterações não serão persistidas no banco de dados.</p>
         </div>
       )}
 

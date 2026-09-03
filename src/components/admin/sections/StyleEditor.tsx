@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Save, Loader2, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
-import { saveSiteConfig } from "../../../lib/firestore";
+import { saveSiteConfig } from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function StyleEditor() {
   const { siteConfig } = useSiteData();
@@ -26,7 +26,7 @@ export function StyleEditor() {
   };
 
   const handleSave = async () => {
-    if (!isFirebaseConfigured) {
+    if (!isSupabaseConfigured) {
       setStatus("error");
       return;
     }
@@ -51,10 +51,10 @@ export function StyleEditor() {
 
   return (
     <div className="space-y-6 max-w-xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado — alterações de cores são apenas para preview.</p>
+          <p>Supabase não configurado — alterações de cores são apenas para preview.</p>
         </div>
       )}
 
@@ -177,7 +177,7 @@ export function StyleEditor() {
 
         {status === "success" && (
           <span className="flex items-center gap-2 text-green-400 text-sm">
-            <CheckCircle2 className="w-4 h-4" /> Salvo!
+            <CheckCircle2 className="w-4 h-4" /> Salvo no Supabase!
           </span>
         )}
         {status === "error" && (

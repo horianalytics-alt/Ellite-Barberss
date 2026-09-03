@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Upload, Loader2, AlertCircle, CheckCircle2, ImagePlus, Scissors } from "lucide-react";
-import { uploadLogo } from "../../../lib/firestore";
+import { uploadLogo } from "../../../lib/supabase-db";
 import { useSiteData } from "../../../context/SiteDataContext";
-import { isFirebaseConfigured } from "../../../lib/firebase";
+import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function LogoEditor() {
   const { siteConfig } = useSiteData();
@@ -28,9 +28,9 @@ export function LogoEditor() {
 
   const handleSave = async () => {
     if (!pendingFile) return;
-    if (!isFirebaseConfigured) {
+    if (!isSupabaseConfigured) {
       setStatus("error");
-      setErrorMsg("Firebase não configurado.");
+      setErrorMsg("Supabase não configurado.");
       return;
     }
     setUploading(true);
@@ -39,9 +39,9 @@ export function LogoEditor() {
       setPendingFile(null);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
-    } catch {
+    } catch (err: any) {
       setStatus("error");
-      setErrorMsg("Erro ao fazer upload da logo.");
+      setErrorMsg(err?.message || "Erro ao fazer upload da logo no Supabase Storage.");
     } finally {
       setUploading(false);
     }
@@ -49,16 +49,16 @@ export function LogoEditor() {
 
   return (
     <div className="space-y-6 max-w-xl">
-      {!isFirebaseConfigured && (
+      {!isSupabaseConfigured && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>Firebase não configurado — upload não será persistido.</p>
+          <p>Supabase não configurado — upload não será persistido.</p>
         </div>
       )}
 
       <div className="p-6 rounded-2xl bg-[#141414] border border-white/10">
         <h3 className="font-serif text-base font-bold text-white mb-4">Preview da Logo</h3>
-        
+
         {/* Preview Area */}
         <div className="flex items-center justify-center w-full h-48 rounded-xl bg-[#0a0a0a] border border-[#C9A84C]/20 mb-4 overflow-hidden">
           {previewUrl ? (
@@ -113,7 +113,7 @@ export function LogoEditor() {
 
         {status === "success" && (
           <p className="flex items-center gap-2 text-green-400 text-sm mt-3">
-            <CheckCircle2 className="w-4 h-4" /> Logo atualizada com sucesso!
+            <CheckCircle2 className="w-4 h-4" /> Logo salva com sucesso no Supabase!
           </p>
         )}
         {status === "error" && (
