@@ -1,23 +1,13 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { supabase as generatedClient } from "@/integrations/supabase/client";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "";
 
 export const isSupabaseConfigured = Boolean(
-  supabaseUrl &&
-  supabaseAnonKey &&
-  supabaseUrl.startsWith("http") &&
-  supabaseAnonKey.length > 10
+  supabaseUrl && supabaseKey && supabaseUrl.startsWith("http") && supabaseKey.length > 10,
 );
 
-let client: SupabaseClient | null = null;
-
-if (isSupabaseConfigured) {
-  client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-    },
-  });
-}
-
-export const supabase = client;
+export const supabase = isSupabaseConfigured ? generatedClient : null;
