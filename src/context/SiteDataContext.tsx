@@ -157,21 +157,22 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
     seedInitialDataSupabase().catch(console.error);
 
-    const unsub1 = subscribeSiteConfig((config) => {
-      // If Supabase doesn't have about_images stored (column missing or empty),
-      // it returns the default images. In that case, preserve what's in localStorage
-      // so user-saved changes aren't lost on page reload.
+    const unsub1 = subscribeSiteConfig((dbConfig) => {
+      // Universal smart-merge: for each field, if Supabase returns the hardcoded
+      // default value (= column missing or never saved), keep the localStorage value.
+      // If Supabase has a real custom value, trust it (it was explicitly saved there).
       setSiteConfig((prev) => {
-        const defaultImgUrls = JSON.stringify(DEFAULT_CONFIG.aboutImages);
-        const dbImgUrls = JSON.stringify(config.aboutImages);
-        const keepLocalImages =
-          dbImgUrls === defaultImgUrls && // DB returned the hardcoded default
-          JSON.stringify(prev.aboutImages) !== defaultImgUrls; // we have something different saved locally
-
-        const merged: SiteConfig = {
-          ...config,
-          aboutImages: keepLocalImages ? prev.aboutImages : config.aboutImages,
-        };
+        const merged = { ...prev };
+        (Object.keys(DEFAULT_CONFIG) as (keyof SiteConfig)[]).forEach((key) => {
+          const dbVal = JSON.stringify(dbConfig[key]);
+          const defVal = JSON.stringify(DEFAULT_CONFIG[key]);
+          const dbHasCustomValue = dbVal !== defVal;
+          if (dbHasCustomValue) {
+            // DB has a value different from the hardcoded default → trust the DB
+            (merged as any)[key] = dbConfig[key];
+          }
+          // else: DB returned the hardcoded default → keep what's in localStorage (prev)
+        });
         setLocalData(STORAGE_KEYS.CONFIG, merged);
         return merged;
       });
@@ -207,9 +208,21 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const refreshSiteConfig = React.useCallback(async () => {
     if (!isSupabaseConfigured) return;
     try {
-      const config = await getSiteConfig();
-      setSiteConfig(config);
-      setLocalData(STORAGE_KEYS.CONFIG, config);
+      const dbConfig = await getSiteConfig();
+      // Use the same smart-merge: prefer DB values that differ from the default,
+      // keep localStorage values for fields where DB returns the hardcoded default.
+      setSiteConfig((prev) => {
+        const merged = { ...prev };
+        (Object.keys(DEFAULT_CONFIG) as (keyof SiteConfig)[]).forEach((key) => {
+          const dbVal = JSON.stringify(dbConfig[key]);
+          const defVal = JSON.stringify(DEFAULT_CONFIG[key]);
+          if (dbVal !== defVal) {
+            (merged as any)[key] = dbConfig[key];
+          }
+        });
+        setLocalData(STORAGE_KEYS.CONFIG, merged);
+        return merged;
+      });
     } catch (err) {
       console.error("Error refreshing site config:", err);
     }

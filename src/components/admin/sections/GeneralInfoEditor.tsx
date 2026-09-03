@@ -24,7 +24,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function GeneralInfoEditor() {
-  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal } = useSiteData();
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorDetails, setErrorDetails] = useState<string>("");
@@ -87,7 +87,8 @@ export function GeneralInfoEditor() {
       // 2. Persist to Supabase if configured
       if (isSupabaseConfigured) {
         await saveSiteConfig(payload);
-        await refreshSiteConfig();
+        // Note: do NOT call refreshSiteConfig() here — it could overwrite the
+        // just-saved local state if Supabase columns are missing.
       }
 
       setStatus("success");

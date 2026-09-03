@@ -5,7 +5,7 @@ import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function LogoEditor() {
-  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal } = useSiteData();
   const [previewUrl, setPreviewUrl] = useState<string | null>(siteConfig.logoUrl || null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -50,7 +50,7 @@ export function LogoEditor() {
 
       if (isSupabaseConfigured) {
         await saveSiteConfig({ logoUrl: finalUrl });
-        await refreshSiteConfig();
+        // Note: do NOT call refreshSiteConfig() — it could overwrite saved data.
       }
 
       setPendingFile(null);

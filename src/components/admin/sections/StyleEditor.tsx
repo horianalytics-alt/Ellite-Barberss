@@ -5,7 +5,7 @@ import { useSiteData } from "../../../context/SiteDataContext";
 import { isSupabaseConfigured } from "../../../lib/supabase";
 
 export function StyleEditor() {
-  const { siteConfig, updateSiteConfigLocal, refreshSiteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfigLocal } = useSiteData();
   const [accentColor, setAccentColor] = useState(siteConfig.accentColor || "#C9A84C");
   const [backgroundColor, setBackgroundColor] = useState(siteConfig.backgroundColor || "#0a0a0a");
   const [saving, setSaving] = useState(false);
@@ -39,7 +39,7 @@ export function StyleEditor() {
       // 2. Persist to Supabase if configured
       if (isSupabaseConfigured) {
         await saveSiteConfig({ accentColor, backgroundColor });
-        await refreshSiteConfig();
+        // Note: do NOT call refreshSiteConfig() — it could overwrite saved data.
       }
 
       setStatus("success");
