@@ -15,6 +15,10 @@ import {
   subscribePackages,
   subscribeGallery,
   seedInitialDataSupabase,
+  getSiteConfig,
+  getServices,
+  getPackages,
+  getGallery,
   type SiteConfig,
   type ServiceItem,
   type PackageItem,
@@ -31,6 +35,11 @@ interface SiteDataContextType {
   gallery: GalleryItem[];
   loading: boolean;
   isSupabaseReady: boolean;
+  refreshSiteConfig: () => Promise<void>;
+  refreshServices: () => Promise<void>;
+  refreshPackages: () => Promise<void>;
+  refreshGallery: () => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
 const SiteDataContext = createContext<SiteDataContextType>({
@@ -40,6 +49,11 @@ const SiteDataContext = createContext<SiteDataContextType>({
   gallery: DEFAULT_GALLERY,
   loading: false,
   isSupabaseReady: false,
+  refreshSiteConfig: async () => {},
+  refreshServices: async () => {},
+  refreshPackages: async () => {},
+  refreshGallery: async () => {},
+  refreshAll: async () => {},
 });
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -93,6 +107,39 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const refreshSiteConfig = React.useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const config = await getSiteConfig();
+    setSiteConfig(config);
+  }, []);
+
+  const refreshServices = React.useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const svcs = await getServices();
+    setServices(svcs.length ? svcs : DEFAULT_SERVICES);
+  }, []);
+
+  const refreshPackages = React.useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const pkgs = await getPackages();
+    setPackages(pkgs.length ? pkgs : DEFAULT_PACKAGES);
+  }, []);
+
+  const refreshGallery = React.useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const items = await getGallery();
+    setGallery(items.length ? items : DEFAULT_GALLERY);
+  }, []);
+
+  const refreshAll = React.useCallback(async () => {
+    await Promise.all([
+      refreshSiteConfig(),
+      refreshServices(),
+      refreshPackages(),
+      refreshGallery(),
+    ]);
+  }, [refreshSiteConfig, refreshServices, refreshPackages, refreshGallery]);
+
   return (
     <SiteDataContext.Provider
       value={{
@@ -102,6 +149,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         gallery,
         loading,
         isSupabaseReady: isSupabaseConfigured,
+        refreshSiteConfig,
+        refreshServices,
+        refreshPackages,
+        refreshGallery,
+        refreshAll,
       }}
     >
       {children}
