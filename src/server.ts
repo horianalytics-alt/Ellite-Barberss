@@ -48,13 +48,34 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      let response = await handler.fetch(request, env, ctx);
+      response = await normalizeCatastrophicSsrResponse(response);
+
+      const headers = new Headers(response.headers);
+      headers.set("X-Frame-Options", "SAMEORIGIN");
+      headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://booksy.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://booksy.com; frame-src 'self' https://booksy.com https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'");
+      headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
+      headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()");
+      
+      const contentType = headers.get("content-type") || "";
+      if (contentType.includes("text/html")) {
+        headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      }
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: { 
+          "content-type": "text/html; charset=utf-8",
+          "X-Frame-Options": "SAMEORIGIN",
+          "Cache-Control": "no-store, no-cache, must-revalidate"
+        },
       });
     }
   },
