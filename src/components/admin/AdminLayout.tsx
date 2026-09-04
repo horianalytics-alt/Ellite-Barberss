@@ -47,8 +47,8 @@ export function AdminLayout({ activeSection, onSectionChange, children }: AdminL
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate({ to: "/admin/login" });
   };
 
