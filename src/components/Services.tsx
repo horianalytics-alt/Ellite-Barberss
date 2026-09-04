@@ -23,7 +23,11 @@ export function Services() {
         } transition-all duration-300 hover:shadow-[0_0_20px_rgba(201,168,76,0.15)] flex flex-col justify-between`}
       >
         {service.popular && (
-          <span className={`absolute inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#8C7126] to-[#C9A84C] font-bold uppercase tracking-wider text-black z-10 shadow-lg ${isTwoCol ? "text-[0.65rem] px-2 py-[3px] top-2 right-2 sm:text-[10px] sm:px-3 sm:py-0.5 sm:top-3 sm:right-4" : "text-[10px] px-3 py-0.5 top-2 right-2 sm:-top-3 sm:right-6"}`}>
+          <span className={`absolute z-10 inline-flex items-center gap-1 rounded-[20px] bg-gradient-to-r from-[#8C7126] to-[#C9A84C] font-bold uppercase tracking-wider text-black shadow-lg ${
+            isTwoCol
+              ? "max-sm:top-[8px] max-sm:right-[8px] max-sm:text-[0.6rem] max-sm:px-[8px] max-sm:py-[3px] sm:top-[12px] sm:right-[12px] sm:text-[0.65rem] sm:px-[10px] sm:py-[4px]"
+              : "top-[12px] right-[12px] text-[0.65rem] px-[10px] py-[4px]"
+          }`}>
             <Flame className="w-3 h-3 text-black fill-black" /> Destaque
           </span>
         )}
@@ -34,7 +38,11 @@ export function Services() {
           </div>
         )}
 
-        <div className={`flex-1 flex flex-col justify-between ${isTwoCol ? "p-3 gap-1.5 sm:p-5 sm:gap-4" : (hasPhoto ? "p-4" : "p-5 pt-4 sm:p-6 sm:pt-4")}`}>
+        <div className={`flex-1 flex flex-col justify-between ${
+          isTwoCol 
+            ? `p-3 gap-1.5 sm:p-5 sm:gap-4 ${(!hasPhoto && service.popular) ? 'pt-8 sm:pt-10' : ''}` 
+            : (hasPhoto ? "p-4" : `p-5 sm:p-6 ${service.popular ? 'pt-10 sm:pt-12' : 'pt-4 sm:pt-4'}`)
+        }`}>
           <div className={`flex ${isTwoCol ? "flex-col sm:flex-row sm:items-baseline sm:justify-between" : (hasPhoto ? "flex-col mb-2" : "items-baseline justify-between gap-4 mb-2")}`}>
             <h4 className={`font-serif font-bold text-white group-hover:text-[#E0C068] transition-colors leading-tight line-clamp-2 ${isTwoCol ? "text-[0.9rem] sm:text-lg sm:mb-1" : (hasPhoto ? "text-base sm:text-lg mb-1" : (isElite ? "text-xl" : "text-lg"))}`}>
               {service.name}
