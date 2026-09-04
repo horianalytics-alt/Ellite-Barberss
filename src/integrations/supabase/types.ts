@@ -90,6 +90,7 @@ export type Database = {
           description: string | null
           display_order: number
           id: string
+          image_url: string | null
           name: string
           popular: boolean
           price: string | null
@@ -102,6 +103,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           id: string
+          image_url?: string | null
           name: string
           popular?: boolean
           price?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          image_url?: string | null
           name?: string
           popular?: boolean
           price?: string | null
@@ -124,47 +127,65 @@ export type Database = {
       }
       site_config: {
         Row: {
+          about_images: Json | null
           accent_color: string | null
           address: string | null
+          address_complement: string | null
           background_color: string | null
           barbershop_name: string | null
           booksy_url: string | null
           created_at: string
+          google_maps_embed_url: string | null
+          google_maps_url: string | null
           hero_subtitle: string | null
           hero_title: string | null
           hours_text: string | null
           id: string
+          instagram_url: string | null
           logo_url: string | null
+          phone_text: string | null
           updated_at: string
           whatsapp_url: string | null
         }
         Insert: {
+          about_images?: Json | null
           accent_color?: string | null
           address?: string | null
+          address_complement?: string | null
           background_color?: string | null
           barbershop_name?: string | null
           booksy_url?: string | null
           created_at?: string
+          google_maps_embed_url?: string | null
+          google_maps_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
           hours_text?: string | null
           id: string
+          instagram_url?: string | null
           logo_url?: string | null
+          phone_text?: string | null
           updated_at?: string
           whatsapp_url?: string | null
         }
         Update: {
+          about_images?: Json | null
           accent_color?: string | null
           address?: string | null
+          address_complement?: string | null
           background_color?: string | null
           barbershop_name?: string | null
           booksy_url?: string | null
           created_at?: string
+          google_maps_embed_url?: string | null
+          google_maps_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
           hours_text?: string | null
           id?: string
+          instagram_url?: string | null
           logo_url?: string | null
+          phone_text?: string | null
           updated_at?: string
           whatsapp_url?: string | null
         }
