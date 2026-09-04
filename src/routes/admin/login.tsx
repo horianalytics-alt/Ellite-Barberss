@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../context/AuthContext";
 import { AuthProvider } from "../../context/AuthContext";
-import { Scissors, Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
+import { Scissors, Eye, EyeOff, LogIn, AlertCircle, UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLoginPage,
@@ -24,6 +25,7 @@ function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -43,6 +45,43 @@ function AdminLogin() {
       setError(result.error ?? "Não foi possível entrar.");
     }
     setLoading(false);
+  };
+
+  // First-time setup: creates the account and claims the admin role only while
+  // no administrator exists yet (enforced server-side by the database).
+  const handleFirstAdmin = async () => {
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+    try {
+      const email = username.trim();
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/admin/login` },
+      });
+      if (signUpError && !/already registered/i.test(signUpError.message)) {
+        setError(signUpError.message);
+        return;
+      }
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setInfo("Conta criada. Confirme o e-mail (se solicitado) e depois entre normalmente.");
+        return;
+      }
+      const { data: claimed } = await supabase.rpc("claim_first_admin");
+      if (claimed === true) {
+        const result = await login(email, password);
+        if (result.ok) {
+          navigate({ to: "/admin/dashboard" });
+          return;
+        }
+      }
+      await supabase.auth.signOut();
+      setError("Já existe um administrador. Peça acesso ao responsável pelo painel.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,6 +169,19 @@ function AdminLogin() {
               {loading ? "Entrando..." : "Entrar"}
             </button>
           </form>
+        </div>
+
+        <div className="mt-4 text-center">
+          {info && <p className="text-xs text-[#C9A84C] mb-2">{info}</p>}
+          <button
+            type="button"
+            onClick={handleFirstAdmin}
+            disabled={loading || !username || password.length < 6}
+            className="inline-flex items-center gap-2 text-xs text-gray-500 hover:text-[#C9A84C] disabled:opacity-40 transition-colors"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            Primeiro acesso: criar conta de administrador
+          </button>
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-6">
