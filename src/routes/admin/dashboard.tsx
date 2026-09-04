@@ -27,17 +27,17 @@ function AdminDashboardPage() {
 }
 
 function AdminDashboard() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<AdminSection>("geral");
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       navigate({ to: "/admin/login" });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
-  if (!isAuthenticated) return null;
+  if (loading || !isAuthenticated) return null;
 
   return (
     <SiteDataProvider>

@@ -25,6 +25,20 @@ import {
   type GalleryItem,
 } from "../lib/supabase-db";
 import { isSupabaseConfigured } from "../lib/supabase";
+import { safeUrl, safeEmbedUrl } from "../lib/safe-url";
+
+/** Defensive sanitisation: never let a stored/cached link with an unsafe scheme reach an href. */
+function sanitizeConfig(config: SiteConfig): SiteConfig {
+  return {
+    ...config,
+    booksyUrl: safeUrl(config.booksyUrl, DEFAULT_CONFIG.booksyUrl),
+    whatsappUrl: safeUrl(config.whatsappUrl, DEFAULT_CONFIG.whatsappUrl),
+    instagramUrl: safeUrl(config.instagramUrl, DEFAULT_CONFIG.instagramUrl),
+    googleMapsUrl: safeUrl(config.googleMapsUrl, DEFAULT_CONFIG.googleMapsUrl),
+    googleMapsEmbedUrl: safeEmbedUrl(config.googleMapsEmbedUrl, DEFAULT_CONFIG.googleMapsEmbedUrl),
+    logoUrl: safeUrl(config.logoUrl, DEFAULT_CONFIG.logoUrl),
+  };
+}
 
 // ─── LocalStorage Cache Keys ──────────────────────────────────────────────────
 const STORAGE_KEYS = {
@@ -96,14 +110,14 @@ const SiteDataContext = createContext<SiteDataContextType>({
 export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
     const saved = getLocalData<SiteConfig>(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG);
-    return {
+    return sanitizeConfig({
       ...DEFAULT_CONFIG,
       ...saved,
       aboutImages:
         saved.aboutImages && saved.aboutImages.length > 0
           ? saved.aboutImages
           : DEFAULT_CONFIG.aboutImages,
-    };
+    });
   });
   const [services, setServices] = useState<ServiceItem[]>(() =>
     getLocalData(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES)
@@ -125,7 +139,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   // Save changes to localStorage cache
   const updateSiteConfigLocal = React.useCallback((config: Partial<SiteConfig>) => {
     setSiteConfig((prev) => {
-      const next = { ...prev, ...config };
+      const next = sanitizeConfig({ ...prev, ...config });
       setLocalData(STORAGE_KEYS.CONFIG, next);
       return next;
     });
@@ -173,8 +187,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           }
           // else: DB returned the hardcoded default → keep what's in localStorage (prev)
         });
-        setLocalData(STORAGE_KEYS.CONFIG, merged);
-        return merged;
+        const safe = sanitizeConfig(merged);
+        setLocalData(STORAGE_KEYS.CONFIG, safe);
+        return safe;
       });
       tryResolve();
     });
@@ -220,8 +235,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             (merged as any)[key] = dbConfig[key];
           }
         });
-        setLocalData(STORAGE_KEYS.CONFIG, merged);
-        return merged;
+        const safe = sanitizeConfig(merged);
+        setLocalData(STORAGE_KEYS.CONFIG, safe);
+        return safe;
       });
     } catch (err) {
       console.error("Error refreshing site config:", err);

@@ -16,16 +16,17 @@ function AdminIndexPage() {
 }
 
 function AdminIndex() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (loading) return;
     if (isAuthenticated) {
       navigate({ to: "/admin/dashboard" });
     } else {
       navigate({ to: "/admin/login" });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   return null;
 }
