@@ -25,6 +25,20 @@ import {
   type GalleryItem,
 } from "../lib/supabase-db";
 import { isSupabaseConfigured } from "../lib/supabase";
+import { safeUrl, safeEmbedUrl } from "../lib/safe-url";
+
+/** Defensive sanitisation: never let a stored/cached link with an unsafe scheme reach an href. */
+function sanitizeConfig(config: SiteConfig): SiteConfig {
+  return {
+    ...config,
+    booksyUrl: safeUrl(config.booksyUrl, DEFAULT_CONFIG.booksyUrl),
+    whatsappUrl: safeUrl(config.whatsappUrl, DEFAULT_CONFIG.whatsappUrl),
+    instagramUrl: safeUrl(config.instagramUrl, DEFAULT_CONFIG.instagramUrl),
+    googleMapsUrl: safeUrl(config.googleMapsUrl, DEFAULT_CONFIG.googleMapsUrl),
+    googleMapsEmbedUrl: safeEmbedUrl(config.googleMapsEmbedUrl, DEFAULT_CONFIG.googleMapsEmbedUrl),
+    logoUrl: safeUrl(config.logoUrl, DEFAULT_CONFIG.logoUrl),
+  };
+}
 
 // ─── LocalStorage Cache Keys ──────────────────────────────────────────────────
 const STORAGE_KEYS = {
@@ -125,7 +139,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   // Save changes to localStorage cache
   const updateSiteConfigLocal = React.useCallback((config: Partial<SiteConfig>) => {
     setSiteConfig((prev) => {
-      const next = { ...prev, ...config };
+      const next = sanitizeConfig({ ...prev, ...config });
       setLocalData(STORAGE_KEYS.CONFIG, next);
       return next;
     });
