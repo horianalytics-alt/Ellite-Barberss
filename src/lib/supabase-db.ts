@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from "./supabase";
+import { safeUrl, safeEmbedUrl } from "./safe-url";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -247,8 +248,26 @@ function mapDbGalleryToFrontend(row: any): GalleryItem {
 // don't overwrite a fresh local state with stale DB data.
 let _suppressSiteConfigCallbacksUntil = 0;
 
+const URL_FIELDS = ["booksyUrl", "whatsappUrl", "instagramUrl", "googleMapsUrl", "logoUrl"] as const;
+
+/** Rejects link fields using unsafe schemes (javascript:, data:, ...) before saving. */
+function validateConfigUrls(config: Partial<SiteConfig>): void {
+  for (const field of URL_FIELDS) {
+    const value = config[field];
+    if (value !== undefined && value !== "" && safeUrl(value) === "") {
+      throw new Error(`Link inválido no campo "${field}". Use apenas endereços http(s), mailto ou tel.`);
+    }
+  }
+  const embed = config.googleMapsEmbedUrl;
+  if (embed !== undefined && embed !== "" && safeEmbedUrl(embed) === "") {
+    throw new Error('Link inválido no campo "googleMapsEmbedUrl". Use apenas endereços http(s).');
+  }
+}
+
 export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void> {
   if (!supabase) throw new Error("Supabase não configurado");
+
+  validateConfigUrls(config);
 
   // Suppress realtime callbacks for 5s so the channel echo doesn't revert the UI
   _suppressSiteConfigCallbacksUntil = Date.now() + 5000;
