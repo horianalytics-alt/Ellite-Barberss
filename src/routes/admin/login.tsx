@@ -22,7 +22,7 @@ function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Redirect if already authenticated
@@ -34,14 +34,13 @@ function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(false);
+    setError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400)); // brief UX delay
-    const success = login(username.trim(), password);
-    if (success) {
+    const result = await login(username.trim(), password);
+    if (result.ok) {
       navigate({ to: "/admin/dashboard" });
     } else {
-      setError(true);
+      setError(result.error ?? "Não foi possível entrar.");
     }
     setLoading(false);
   };
@@ -72,21 +71,21 @@ function AdminLogin() {
           {error && (
             <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              Usuário ou senha incorretos. Tente novamente.
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                Usuário
+                E-mail
               </label>
               <input
-                type="text"
+                type="email"
                 value={username}
-                onChange={(e) => { setUsername(e.target.value); setError(false); }}
-                autoComplete="username"
-                placeholder="ellite"
+                onChange={(e) => { setUsername(e.target.value); setError(null); }}
+                autoComplete="email"
+                placeholder="voce@exemplo.com"
                 className={`w-full px-4 py-3.5 rounded-xl bg-[#141414] border text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/40 transition-all ${
                   error ? "border-red-500/60" : "border-white/10 focus:border-[#C9A84C]/50"
                 }`}
@@ -101,7 +100,7 @@ function AdminLogin() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(false); }}
+                  onChange={(e) => { setPassword(e.target.value); setError(null); }}
                   autoComplete="current-password"
                   placeholder="••••••••"
                   className={`w-full px-4 py-3.5 pr-12 rounded-xl bg-[#141414] border text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/40 transition-all ${
