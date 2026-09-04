@@ -110,14 +110,14 @@ const SiteDataContext = createContext<SiteDataContextType>({
 export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
     const saved = getLocalData<SiteConfig>(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG);
-    return {
+    return sanitizeConfig({
       ...DEFAULT_CONFIG,
       ...saved,
       aboutImages:
         saved.aboutImages && saved.aboutImages.length > 0
           ? saved.aboutImages
           : DEFAULT_CONFIG.aboutImages,
-    };
+    });
   });
   const [services, setServices] = useState<ServiceItem[]>(() =>
     getLocalData(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES)
@@ -187,8 +187,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
           }
           // else: DB returned the hardcoded default → keep what's in localStorage (prev)
         });
-        setLocalData(STORAGE_KEYS.CONFIG, merged);
-        return merged;
+        const safe = sanitizeConfig(merged);
+        setLocalData(STORAGE_KEYS.CONFIG, safe);
+        return safe;
       });
       tryResolve();
     });
@@ -234,8 +235,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             (merged as any)[key] = dbConfig[key];
           }
         });
-        setLocalData(STORAGE_KEYS.CONFIG, merged);
-        return merged;
+        const safe = sanitizeConfig(merged);
+        setLocalData(STORAGE_KEYS.CONFIG, safe);
+        return safe;
       });
     } catch (err) {
       console.error("Error refreshing site config:", err);
